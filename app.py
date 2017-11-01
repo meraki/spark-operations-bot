@@ -8,6 +8,12 @@ import cico_umbrella
 import sys
 
 # Retrieve required details from environment variables
+app_port = os.getenv("PORT")
+if not app_port:
+    app_port = 5000
+else:
+    app_port = int(app_port)
+
 bot_email = os.getenv("SPARK_BOT_EMAIL")
 spark_token = os.getenv("SPARK_BOT_TOKEN")
 bot_url = os.getenv("SPARK_BOT_URL")
@@ -35,4 +41,4 @@ bot.add_command('/health', 'Get health of entire environment.', cico_combined.ge
 bot.add_command('/check', 'Get user status.', cico_combined.get_clients)
 
 # Run Bot
-bot.run(host='0.0.0.0', port=5000)
+bot.run(host='0.0.0.0', port=app_port)
