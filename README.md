@@ -136,7 +136,6 @@ Copy your Meraki organization ID to use for the environment variables below.
 
 # Spark Call Integration<a name="sparkcall"/>
 
----
 Note: The Spark Call APIs being used have not been officially published. As such, they are subject to change at any time without notification.
 ---
 
@@ -227,15 +226,19 @@ If you are in a 1:1 space with your bot, you can simply type either /health or /
 The easiest way to use this module is to set a few environment variables. On Windows, use "set" instead of "export". See the ngrok section below if you do not have a web server already facing the Internet. These are the Environment variables that are required to run the bot itself (app.py):
 
 ```
+# Required for Bot Operation
 export SPARK_BOT_URL=https://mypublicsite.io  *(your public facing webserver, or the forwarding address from ngrok)*
 export SPARK_BOT_TOKEN=<your bot token>
 export SPARK_BOT_EMAIL=<your bot email>
 export SPARK_BOT_APP_NAME=<your bot name>
+# Enable Meraki Integration
 export MERAKI_API_TOKEN=<Meraki Dashboard API token>
 export MERAKI_ORG=<Meraki Dashboard Organization ID>
 export MERAKI_HTTP_USERNAME=<Optional; Meraki Dashboard username>
 export MERAKI_HTTP_PASSWORD=<Optional; Meraki Dashboard password>
+# Enable Spark Call Integration
 export SPARK_API_TOKEN=<Spark Call Admin API token>
+# Enable Umbrella Integration
 export S3_BUCKET=<Amazon S3 bucket name; used for Umbrella log import>
 export S3_ACCESS_KEY_ID=<Amazon S3 access key ID; used for Umbrella log import>
 export S3_SECRET_ACCESS_KEY=<Amazon S3 secret access key; used for Umbrella log import>
