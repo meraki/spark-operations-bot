@@ -22,6 +22,8 @@ This bot leverages the Spark Bot framework found [here](https://github.com/imape
   - [Set S3 Lifecycle](#umbrella-s3-retention)
   - [Run S3 Log Import](#umbrella-s3-import)
 - [Usage](#usage)
+  - [Execute Locally](#local-run)
+  - [Docker](#docker-run)
 
 
 # Prerequisites<a name="prerequisites"/>
@@ -238,6 +240,11 @@ export S3_SECRET_ACCESS_KEY=<Amazon IAM Secret Access Key>
 
 # Usage<a name="usage"/>
 
+There are several ways to run the bot. Use one of the methods below to start up the bot. Once it's running, you can start interacting with it!
+If you are in a 1:1 space with your bot, you can simply type either /health or /check <username>. If you are in a group, you will first need to @mention your bot, followed by /health or /check <username>.
+
+## Execute Locally<a name="local-run">
+
 The easiest way to use this module is to set a few environment variables. On Windows, use "set" instead of "export". See the ngrok section below if you do not have a web server already facing the Internet. These are the Environment variables that are required to run the bot itself (app.py):
 
 ```
@@ -255,4 +262,17 @@ Now launch your bot!!
 
 `python app.py`
 
-If you are in a 1:1 space with your bot, you can simply type either /health or /check <username>. If you are in a group, you will first need to @mention your bot, followed by /health or /check <username>.
+## Docker<a name="docker-run">
+
+First, edit the .env file to set your environment variables.
+
+You can build the container yourself:
+```
+docker build -t joshand/spark-operations-bot .
+docker run -p 5000:5000 -it --env-file .env joshand/spark-operations-bot
+```
+
+Or, you can use the published container:
+```
+./start.sh
+```

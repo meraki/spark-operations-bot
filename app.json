@@ -1,0 +1,57 @@
+{
+  "name": "Cisco Spark Operations Bot",
+  "description": "Cisco Spark Operations Bot",
+  "repository": "https://github.com/joshand/spark-operations-bot",
+  "addons": [],
+  "env": {
+    "SPARK_BOT_URL": {
+      "description": "The address at which your bot can be reached. The public address of your Heroku app will be 'https://<App Name>.herokuapp.com",
+      "required": true
+    },
+    "SPARK_BOT_TOKEN": {
+      "description": "The bot's access token from Cisco Spark. Create a new bot account at https://developer.ciscospark.com/add-bot.html if you do not have one.",
+      "required": true
+    },
+    "SPARK_BOT_EMAIL": {
+      "description": "The bot's email address from Cisco Spark.",
+      "required": true
+    },
+    "SPARK_BOT_APP_NAME": {
+      "description": "The bot's name from Cisco Spark.",
+      "required": true
+    },
+    "MERAKI_API_TOKEN": {
+      "description": "The API token from the Meraki Dashboard.",
+      "required": true
+    },
+    "MERAKI_ORG": {
+      "description": "The Organization ID from the Meraki API.",
+      "required": true
+    },
+    "MERAKI_HTTP_USERNAME": {
+      "description": "Dashboard username for the bot. Used to create cross-launch links back into the dashboard.",
+      "required": false
+    },
+    "MERAKI_HTTP_PASSWORD": {
+      "description": "Dashboard password for the bot. Used to create cross-launch links back into the dashboard.",
+      "required": false
+    },
+    "SPARK_API_TOKEN": {
+      "description": "API Token for Cisco Spark Call Admin user.",
+      "required": true
+    },
+    "S3_BUCKET": {
+      "description": "Amazon S3 Bucket name for Umbrella log import.",
+      "required": true
+    },
+    "S3_ACCESS_KEY_ID": {
+      "description": "Amazon S3 Access Key ID for Umbrella log import.",
+      "required": true
+    },
+    "S3_SECRET_ACCESS_KEY": {
+      "description": "Amazon S3 Secret Access Key for Umbrella log import.",
+      "required": true
+    }
+  },
+  "keywords": ["meraki", "spark", "cisco", "ciscospark", "umbrella", "opendns", "bot", "botkit", "python"]
+}

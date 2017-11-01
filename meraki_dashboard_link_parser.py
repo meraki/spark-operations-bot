@@ -13,7 +13,7 @@ meraki_api_token = os.getenv("MERAKI_API_TOKEN")
 meraki_org = os.getenv("MERAKI_ORG")
 
 if not meraki_http_un or not meraki_http_pw or not meraki_api_token or not meraki_org:
-    print("Missing Environment Variable.")
+    print("{'error':'Missing Environment Variable.'}")
     sys.exit()
 
 header = {"X-Cisco-Meraki-API-Key": meraki_api_token}
@@ -130,7 +130,7 @@ def get_meraki_http_info():
     cookies = requests.utils.cookiejar_from_dict(requests.utils.dict_from_cookiejar(session.cookies))
     rcontent = r.content.decode("UTF-8")
     tokenval = meraki_www_get_token(rcontent)
-    print("HTTP Token=", tokenval)
+    #print("HTTP Token=", tokenval)
 
     # Post Login data
     dataval = {'utf8': '&#x2713;', 'email': meraki_http_un, 'password': meraki_http_pw, 'authenticity_token': tokenval, 'commit': 'Log+in', 'goto': 'manage'}
@@ -140,9 +140,9 @@ def get_meraki_http_info():
 
     if rcontent.lower().find("accounts for " + meraki_http_un.lower()):
         orgurl = get_meraki_org_url(rcontent)
-        print(orgurl)
+        #print(orgurl)
     else:
-        print("No Account Selection found. Unable to proceed.")
+        print("{'error':'No Account Selection found. Unable to proceed.'}")
         sys.exit()
 
     # Load redirect page
@@ -166,7 +166,7 @@ def get_meraki_http_info():
     r = session.get(xhrurl, headers=xhrheader, cookies=cookies)
     rcontent = r.content.decode("UTF-8")
     rjson = json.loads(rcontent[rcontent.find("({")+1:-1])
-    print(rjson)
+    #print(rjson)
 
     outjson = {}
     mbase = rjson["networks"]
@@ -183,9 +183,10 @@ def get_meraki_http_info():
 
 
 dbjson = get_meraki_http_info()
-print(json.dumps(dbjson))
-os.environ["MERAKI_DASHBOARD_MAP"] = str(dbjson)
-print("=======")
-print("MERAKI_DASHBOARD_MAP environment variable set.")
+#print(json.dumps(dbjson))
+#os.environ["MERAKI_DASHBOARD_MAP"] = str(dbjson)
+print(str(dbjson))
+#print("=======")
+#print("MERAKI_DASHBOARD_MAP environment variable set.")
 #for n in sorted(get_meraki_api_info()):
 #    print(n)
