@@ -11,6 +11,9 @@ meraki_http_un = os.getenv("MERAKI_HTTP_USERNAME")
 meraki_http_pw = os.getenv("MERAKI_HTTP_PASSWORD")
 meraki_api_token = os.getenv("MERAKI_API_TOKEN")
 meraki_org = os.getenv("MERAKI_ORG")
+if not meraki_org:
+    meraki_org = cico_meraki.get_meraki_one_org()
+
 
 if not meraki_http_un or not meraki_http_pw or not meraki_api_token or not meraki_org:
     print("meraki_dashboard_link_parser.py - Missing Environment Variable.")
