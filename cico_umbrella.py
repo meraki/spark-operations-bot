@@ -85,10 +85,11 @@ def get_umbrella_clients(incoming_msg, rettype):
     client_id = cmdlist[len(cmdlist)-1]
 
     logdata = parse_umbrella_logs()
-    if client_id in logdata["Users"]:
-        userbase = logdata["Users"][client_id]
-    else:
-        userbase = {}
+    if "Users" in logdata:
+        if client_id in logdata["Users"]:
+            userbase = logdata["Users"][client_id]
+        else:
+            userbase = {}
 
     if rettype == "json":
         return userbase

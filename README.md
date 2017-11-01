@@ -11,7 +11,6 @@ This bot leverages the Spark Bot framework found [here](https://github.com/imape
   - [Enable API Access](#meraki-api-access)
   - [Get API Token](#meraki-api-token)
   - [Get Organization ID](#meraki-org-id)
-  - [Get Dashboard Links (Optional)](#meraki-dashboard-links)
 - [Spark Call Integration](#sparkcall)
   - [Verify Admin Rights](#sparkcall-admin)
   - [Get API Token](#sparkcall-token)
@@ -20,8 +19,10 @@ This bot leverages the Spark Bot framework found [here](https://github.com/imape
   - [Enable S3 Log Export](#umbrella-export)
   - [Create S3 API User](#umbrella-s3-api)
   - [Set S3 Lifecycle](#umbrella-s3-retention)
-  - [Run S3 Log Import](#umbrella-s3-import)
 - [Usage](#usage)
+  - [Execute Locally](#local-run)
+  - [Docker](#docker-run)
+  - [Heroku](#heroku-run)
 
 
 # Prerequisites<a name="prerequisites"/>
@@ -117,7 +118,7 @@ POST /                         200 OK
 
 ## Obtain your Meraki Organization ID<a name="meraki-org-id"/>
 
-You can use Postman to run this GET:
+If you have only a single Organization, this step is not required. If you have multiple Organizations, and you do not provide this value, the first network (alphabetically) will be used. You can use Postman to run this GET:
 
 ![postman-meraki-org](images/postman_org.png)
 
@@ -133,20 +134,8 @@ You should see output with one or more networks like this:
 
 Copy your Meraki organization ID to use for the environment variables below.
 
-## Get Dashboard Links (Optional)<a name="meraki-dashboard-links"/>
-
-The bot can be configured to show links on certain elements (clients, devices, networks) to cross-launch back into the Meraki dashboard. However, this data is not currently exposed via the Meraki API. If you would like to create the required linkages (which is an optional step as the bot will function without it), utilize the meraki_dashboard_link_parser.py script to do so. This script will need to be re-run any time you make changes to your Meraki network or device configuration. In order to run this script, you will first need to set the following environment variables:
-```
-export MERAKI_HTTP_USERNAME=<Meraki Dashboard username>
-export MERAKI_HTTP_PASSWORD=<Meraki Dashboard password>
-export MERAKI_API_TOKEN=<Meraki Dashboard API token>
-export MERAKI_ORG=<Meraki Dashboard Organization ID>
-```
-If you are running the bot (app.py) from the same session that you are running meraki_dashboard_link_parser.py from, the MERAKI_DASHBOARD_MAP environment variable will automatically be populated with the mapping data. If you are running them in seperate environments, ensure that you take the output from the meraki_dashboard_link_parser.py script and set your environment variable (MERAKI_DASHBOARD_MAP) with it.
-
 # Spark Call Integration<a name="sparkcall"/>
 
----
 Note: The Spark Call APIs being used have not been officially published. As such, they are subject to change at any time without notification.
 ---
 
@@ -227,32 +216,53 @@ Check "Current version", check "Expire current version of object", and set the d
 
 ![umbrella_lifecycle2](images/aws_s3_lifecycle_2.png)
 
-## Run S3 Log Import<a name="umbrella-s3-import"/>
-
-The umbrella_log_collector.py script is designed to run every 5 minutes and ensure that your local logs are in sync with the logs that are avaialble in Amazon S3. All logs are sync'd locally in order to provide quick access time to the data. Before running the script, you will need to ensure that the following Environment variables are set:
-```
-export S3_BUCKET=<Amazon S3 bucket name>
-export S3_ACCESS_KEY_ID=<Amazon IAM Access Key ID>
-export S3_SECRET_ACCESS_KEY=<Amazon IAM Secret Access Key>
-```
-
 # Usage<a name="usage"/>
+
+There are several ways to run the bot. Use one of the methods below to start up the bot. Once it's running, you can start interacting with it!
+If you are in a 1:1 space with your bot, you can simply type either /health or /check <username>. If you are in a group, you will first need to @mention your bot, followed by /health or /check <username>.
+
+## Execute Locally<a name="local-run">
 
 The easiest way to use this module is to set a few environment variables. On Windows, use "set" instead of "export". See the ngrok section below if you do not have a web server already facing the Internet. These are the Environment variables that are required to run the bot itself (app.py):
 
 ```
+# Required for Bot Operation
 export SPARK_BOT_URL=https://mypublicsite.io  *(your public facing webserver, or the forwarding address from ngrok)*
 export SPARK_BOT_TOKEN=<your bot token>
 export SPARK_BOT_EMAIL=<your bot email>
 export SPARK_BOT_APP_NAME=<your bot name>
+# Enable Meraki Integration
 export MERAKI_API_TOKEN=<Meraki Dashboard API token>
 export MERAKI_ORG=<Meraki Dashboard Organization ID>
-export MERAKI_DASHBOARD_MAP=<Optional, data comes from meraki_dashboard_link_parser.py>
+export MERAKI_HTTP_USERNAME=<Optional; Meraki Dashboard username>
+export MERAKI_HTTP_PASSWORD=<Optional; Meraki Dashboard password>
+# Enable Spark Call Integration
 export SPARK_API_TOKEN=<Spark Call Admin API token>
+# Enable Umbrella Integration
+export S3_BUCKET=<Amazon S3 bucket name; used for Umbrella log import>
+export S3_ACCESS_KEY_ID=<Amazon S3 access key ID; used for Umbrella log import>
+export S3_SECRET_ACCESS_KEY=<Amazon S3 secret access key; used for Umbrella log import>
 ```
 
 Now launch your bot!!
 
 `python app.py`
 
-If you are in a 1:1 space with your bot, you can simply type either /health or /check <username>. If you are in a group, you will first need to @mention your bot, followed by /health or /check <username>.
+## Docker<a name="docker-run">
+
+First, make a copy of the .env.sample file, naming it .env, and editing it to set your environment variables.
+
+You can build the container yourself:
+```
+docker build -t joshand/spark-operations-bot .
+docker run -p 5000:5000 -it --env-file .env joshand/spark-operations-bot
+```
+
+Or, you can use the published container:
+```
+./start.sh
+```
+
+## Heroku<a name="heroku-run">
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)

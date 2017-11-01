@@ -11,10 +11,12 @@ meraki_http_un = os.getenv("MERAKI_HTTP_USERNAME")
 meraki_http_pw = os.getenv("MERAKI_HTTP_PASSWORD")
 meraki_api_token = os.getenv("MERAKI_API_TOKEN")
 meraki_org = os.getenv("MERAKI_ORG")
+if not meraki_org:
+    meraki_org = cico_meraki.get_meraki_one_org()
+
 
 if not meraki_http_un or not meraki_http_pw or not meraki_api_token or not meraki_org:
-    print("Missing Environment Variable.")
-    sys.exit()
+    print("meraki_dashboard_link_parser.py - Missing Environment Variable.")
 
 header = {"X-Cisco-Meraki-API-Key": meraki_api_token}
 
@@ -166,7 +168,7 @@ def get_meraki_http_info():
     r = session.get(xhrurl, headers=xhrheader, cookies=cookies)
     rcontent = r.content.decode("UTF-8")
     rjson = json.loads(rcontent[rcontent.find("({")+1:-1])
-    print(rjson)
+    #print(rjson)
 
     outjson = {}
     mbase = rjson["networks"]
@@ -182,10 +184,11 @@ def get_meraki_http_info():
     return outjson
 
 
-dbjson = get_meraki_http_info()
-print(json.dumps(dbjson))
-os.environ["MERAKI_DASHBOARD_MAP"] = str(dbjson)
-print("=======")
-print("MERAKI_DASHBOARD_MAP environment variable set.")
+#dbjson = get_meraki_http_info()
+#print(json.dumps(dbjson))
+#os.environ["MERAKI_DASHBOARD_MAP"] = str(dbjson)
+#print(str(dbjson))
+#print("=======")
+#print("MERAKI_DASHBOARD_MAP environment variable set.")
 #for n in sorted(get_meraki_api_info()):
 #    print(n)

@@ -7,12 +7,12 @@ import sys
 
 spark_api_token = os.getenv("SPARK_API_TOKEN")
 if not spark_api_token:
-    print("Missing Environment Variable.")
-    sys.exit()
-
-header = {
-    'Authorization': "Bearer " + spark_api_token
-}
+    print("cico_spark_call.py - Missing Environment Variable.")
+    header = {}
+else:
+    header = {
+        'Authorization': "Bearer " + spark_api_token
+    }
 
 
 def decode_base64(data):

@@ -10,8 +10,7 @@ s3_key = os.getenv("S3_ACCESS_KEY_ID")
 s3_secret = os.getenv("S3_SECRET_ACCESS_KEY")
 
 if not s3_bucket or not s3_key or not s3_secret:
-    print("Missing Environment Variable.")
-    sys.exit()
+    print("umbrella_log_collector.py - Missing Environment Variable.")
 
 
 def download_dir(client, resource, dist, local='/tmp', bucket=''):
@@ -55,26 +54,26 @@ def cleanup_files(cl, dist, local='/tmp'):
                     os.remove(local + os.sep + fpath)
 
 
-cl = boto3.client(
-        's3',
-        aws_access_key_id=s3_key,
-        aws_secret_access_key=s3_secret,
-        region_name="us-east-1"
-    )
-rs = boto3.resource(
-        's3',
-        aws_access_key_id=s3_key,
-        aws_secret_access_key=s3_secret,
-        region_name="us-east-1"
-    )
+def get_logs():
+    print("Parsing Umbrella logs...")
+    cl = boto3.client(
+            's3',
+            aws_access_key_id=s3_key,
+            aws_secret_access_key=s3_secret,
+            region_name="us-east-1"
+        )
+    rs = boto3.resource(
+            's3',
+            aws_access_key_id=s3_key,
+            aws_secret_access_key=s3_secret,
+            region_name="us-east-1"
+        )
 
-
-while True:
     try:
         download_dir(cl, rs, 'dnslogs/', '/tmp', s3_bucket)
     except:
         print("Error Loading Logs...")
 
     cleanup_files(cl, 'dnslogs/', '/tmp')
-    print("Sleeping for 5 minutes...")
-    time.sleep(60*5)   # Delay for 5 minute (60 seconds * 5 minutes).
+    # print("Sleeping for 5 minutes...")
+    # time.sleep(60*5)   # Delay for 5 minute (60 seconds * 5 minutes).

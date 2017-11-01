@@ -5,5 +5,5 @@ services:
       - "5000:5000"
     image: joshand/spark-operations-bot
     container_name: spark-operations-bot
-    volumes:
-      - .env:/app/.env
+    env_file:
+      - .env
