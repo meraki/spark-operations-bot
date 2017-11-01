@@ -38,19 +38,19 @@
     },
     "SPARK_API_TOKEN": {
       "description": "API Token for Cisco Spark Call Admin user.",
-      "required": true
+      "required": false
     },
     "S3_BUCKET": {
       "description": "Amazon S3 Bucket name for Umbrella log import.",
-      "required": true
+      "required": false
     },
     "S3_ACCESS_KEY_ID": {
       "description": "Amazon S3 Access Key ID for Umbrella log import.",
-      "required": true
+      "required": false
     },
     "S3_SECRET_ACCESS_KEY": {
       "description": "Amazon S3 Secret Access Key for Umbrella log import.",
-      "required": true
+      "required": false
     }
   },
   "keywords": ["meraki", "spark", "cisco", "ciscospark", "umbrella", "opendns", "bot", "botkit", "python"]
