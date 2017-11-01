@@ -68,5 +68,6 @@ if cico_common.umbrella_support():
 bot.add_command('/health', 'Get health of entire environment.', cico_combined.get_health)
 bot.add_command('/check', 'Get user status.', cico_combined.get_clients)
 
+
 # Run Bot
 bot.run(host='0.0.0.0', port=app_port)

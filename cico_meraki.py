@@ -10,10 +10,36 @@ import json
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+
 meraki_api_token = os.getenv("MERAKI_API_TOKEN")
-meraki_org = os.getenv("MERAKI_ORG")
 #meraki_dashboard_map = os.getenv("MERAKI_DASHBOARD_MAP")
 header = {"X-Cisco-Meraki-API-Key": meraki_api_token}
+
+
+def get_meraki_orgs():
+    # Get a list of all organizations the user has access to
+    url = "https://dashboard.meraki.com/api/v0/organizations"
+    netlist = requests.get(url, headers=header)
+    orgjson = json.loads(netlist.content.decode("utf-8"))
+    return orgjson
+
+
+def get_meraki_one_org():
+    olist = get_meraki_orgs()
+    if len(olist) >= 1:
+        for ol in olist:
+            print(ol["name"], ol["id"])
+        thisorg = str(olist[0]["id"])
+        print("Selecting 'first' organization, id #", thisorg)
+        return thisorg
+    else:
+        print("Unable to select Organization")
+        return "none"
+
+
+meraki_org = os.getenv("MERAKI_ORG")
+if not meraki_org:
+    meraki_org = get_meraki_one_org()
 
 
 def get_meraki_networks():

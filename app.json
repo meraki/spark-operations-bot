@@ -21,35 +21,35 @@
       "required": true
     },
     "MERAKI_API_TOKEN": {
-      "description": "The API token from the Meraki Dashboard.",
-      "required": true
+      "description": "(Required for Meraki Support) The API token from the Meraki Dashboard.",
+      "required": false
     },
     "MERAKI_ORG": {
-      "description": "The Organization ID from the Meraki API.",
-      "required": true
+      "description": "(Required for Meraki Support) The Organization ID from the Meraki API.",
+      "required": false
     },
     "MERAKI_HTTP_USERNAME": {
-      "description": "Meraki Dashboard username. Used to generate cross-launch links from Spark client to Dashboard.",
+      "description": "(Optional for Meraki Support) Meraki Dashboard username. Used to generate cross-launch links from Spark client to Dashboard.",
       "required": false
     },
     "MERAKI_HTTP_PASSWORD": {
-      "description": "Meraki Dashboard password. Used to generate cross-launch links from Spark client to Dashboard.",
+      "description": "(Optional for Meraki Support) Meraki Dashboard password. Used to generate cross-launch links from Spark client to Dashboard.",
       "required": false
     },
     "SPARK_API_TOKEN": {
-      "description": "API Token for Cisco Spark Call Admin user.",
+      "description": "(Required for Spark Call Support) API Token for Cisco Spark Call Admin user.",
       "required": false
     },
     "S3_BUCKET": {
-      "description": "Amazon S3 Bucket name for Umbrella log import.",
+      "description": "(Required for Umbrella Support) Amazon S3 Bucket name for Umbrella log import.",
       "required": false
     },
     "S3_ACCESS_KEY_ID": {
-      "description": "Amazon S3 Access Key ID for Umbrella log import.",
+      "description": "(Required for Umbrella Support) Amazon S3 Access Key ID for Umbrella log import.",
       "required": false
     },
     "S3_SECRET_ACCESS_KEY": {
-      "description": "Amazon S3 Secret Access Key for Umbrella log import.",
+      "description": "(Required for Umbrella Support) Amazon S3 Secret Access Key for Umbrella log import.",
       "required": false
     }
   },

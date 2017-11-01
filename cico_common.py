@@ -11,7 +11,7 @@ s3_secret = os.getenv("S3_SECRET_ACCESS_KEY")
 
 
 def meraki_support():
-    if meraki_api_token and meraki_org:
+    if meraki_api_token:        # and meraki_org:
         return True
     else:
         return False
