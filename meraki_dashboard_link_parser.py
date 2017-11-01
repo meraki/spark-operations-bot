@@ -13,8 +13,7 @@ meraki_api_token = os.getenv("MERAKI_API_TOKEN")
 meraki_org = os.getenv("MERAKI_ORG")
 
 if not meraki_http_un or not meraki_http_pw or not meraki_api_token or not meraki_org:
-    print("Missing Environment Variable.")
-    sys.exit()
+    print("meraki_dashboard_link_parser.py - Missing Environment Variable.")
 
 header = {"X-Cisco-Meraki-API-Key": meraki_api_token}
 

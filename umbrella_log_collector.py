@@ -10,8 +10,7 @@ s3_key = os.getenv("S3_ACCESS_KEY_ID")
 s3_secret = os.getenv("S3_SECRET_ACCESS_KEY")
 
 if not s3_bucket or not s3_key or not s3_secret:
-    print("Missing Environment Variable.")
-    sys.exit()
+    print("umbrella_log_collector.py - Missing Environment Variable.")
 
 
 def download_dir(client, resource, dist, local='/tmp', bucket=''):
