@@ -7,4 +7,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app
 
-CMD [ "/bin/bash",  "./bot_startup.sh" ]
+CMD [ "python3",  "app.py" ]
