@@ -265,7 +265,7 @@ Now launch your bot!!
 
 ## Docker<a name="docker-run">
 
-First, edit the .env file to set your environment variables.
+First, make a copy of the .env.sample file, naming it .env, and editing it to set your environment variables.
 
 You can build the container yourself:
 ```
