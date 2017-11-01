@@ -1,0 +1,9 @@
+version: '2'
+services:
+  sparkopsbot:
+    ports:
+      - "5000:5000"
+    image: joshand/spark-operations-bot
+    container_name: spark-operations-bot
+    volumes:
+      - .env:/app/.env
