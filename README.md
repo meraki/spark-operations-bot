@@ -24,6 +24,7 @@ This bot leverages the Spark Bot framework found [here](https://github.com/imape
 - [Usage](#usage)
   - [Execute Locally](#local-run)
   - [Docker](#docker-run)
+  - [Heroku](#heroku-run)
 
 
 # Prerequisites<a name="prerequisites"/>
@@ -276,3 +277,7 @@ Or, you can use the published container:
 ```
 ./start.sh
 ```
+
+## Heroku<a name="heroku-run">
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
