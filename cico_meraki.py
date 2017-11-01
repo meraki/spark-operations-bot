@@ -26,11 +26,15 @@ def get_meraki_orgs():
 
 def get_meraki_one_org():
     olist = get_meraki_orgs()
+    newodict = {}
+    newolist = []
     if len(olist) >= 1:
-        for ol in olist:
-            print(ol["name"], ol["id"])
-        thisorg = str(olist[0]["id"])
-        print("Selecting 'first' organization, id #", thisorg)
+        for ol in range(0, len(olist)):
+            newodict[olist[ol]["name"]] = ol
+            print(olist[ol]["name"], olist[ol]["id"])
+        newolist = sorted(newodict, key=str.lower)
+        thisorg = str(olist[newodict[newolist[0]]]["id"])
+        print("Selecting alphabetically first organization (" + newolist[0] + "), id #", thisorg)
         return thisorg
     else:
         print("Unable to select Organization")
@@ -46,7 +50,11 @@ def get_meraki_networks():
     # Get a list of all networks associated with the specified organization
     url = "https://dashboard.meraki.com/api/v0/organizations/" + meraki_org + "/networks"
     netlist = requests.get(url, headers=header)
-    netjson = json.loads(netlist.content.decode("utf-8"))
+    if netlist.status_code == 200:
+        netjson = json.loads(netlist.content.decode("utf-8"))
+    else:
+        netjson = {}
+        print("Error retrieving Meraki networks:", netlist.status_code)
     return netjson
 
 
