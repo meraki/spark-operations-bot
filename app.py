@@ -36,7 +36,7 @@ if cico_common.meraki_dashboard_support():
     print("Attempting to resolve Dashboard references...")
     cico_meraki.meraki_dashboard_map = meraki_dashboard_link_parser.get_meraki_http_info()
 else:
-    cico_meraki.meraki_dashboard_map = {}
+    cico_meraki.meraki_dashboard_map = None
 
 
 if cico_common.umbrella_support():

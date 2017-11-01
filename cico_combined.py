@@ -7,12 +7,15 @@ import cico_common
 def get_health(incoming_msg):
     retval = ""
     if cico_common.meraki_support():
+        print("Meraki Support Enabled")
         retval += cico_meraki.get_meraki_health(incoming_msg, "html")
     if cico_common.spark_call_support():
+        print("Spark Call Support Enabled")
         if retval != "":
             retval += "<br><br>"
         retval += cico_spark_call.get_spark_call_health(incoming_msg, "html")
     if cico_common.umbrella_support():
+        print("Umbrella Support Enabled")
         if retval != "":
             retval += "<br><br>"
         retval += cico_umbrella.get_umbrella_health(incoming_msg, "html")
