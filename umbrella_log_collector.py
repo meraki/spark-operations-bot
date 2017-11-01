@@ -55,26 +55,26 @@ def cleanup_files(cl, dist, local='/tmp'):
                     os.remove(local + os.sep + fpath)
 
 
-cl = boto3.client(
-        's3',
-        aws_access_key_id=s3_key,
-        aws_secret_access_key=s3_secret,
-        region_name="us-east-1"
-    )
-rs = boto3.resource(
-        's3',
-        aws_access_key_id=s3_key,
-        aws_secret_access_key=s3_secret,
-        region_name="us-east-1"
-    )
+def get_logs():
+    print("Parsing Umbrella logs...")
+    cl = boto3.client(
+            's3',
+            aws_access_key_id=s3_key,
+            aws_secret_access_key=s3_secret,
+            region_name="us-east-1"
+        )
+    rs = boto3.resource(
+            's3',
+            aws_access_key_id=s3_key,
+            aws_secret_access_key=s3_secret,
+            region_name="us-east-1"
+        )
 
-
-while True:
     try:
         download_dir(cl, rs, 'dnslogs/', '/tmp', s3_bucket)
     except:
         print("Error Loading Logs...")
 
     cleanup_files(cl, 'dnslogs/', '/tmp')
-    print("Sleeping for 5 minutes...")
-    time.sleep(60*5)   # Delay for 5 minute (60 seconds * 5 minutes).
+    # print("Sleeping for 5 minutes...")
+    # time.sleep(60*5)   # Delay for 5 minute (60 seconds * 5 minutes).

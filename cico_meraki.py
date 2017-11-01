@@ -12,7 +12,7 @@ from urllib3.util.retry import Retry
 
 meraki_api_token = os.getenv("MERAKI_API_TOKEN")
 meraki_org = os.getenv("MERAKI_ORG")
-meraki_dashboard_map = os.getenv("MERAKI_DASHBOARD_MAP")
+#meraki_dashboard_map = os.getenv("MERAKI_DASHBOARD_MAP")
 header = {"X-Cisco-Meraki-API-Key": meraki_api_token}
 
 
@@ -27,7 +27,7 @@ def get_meraki_networks():
 def meraki_create_dashboard_link(linktype, linkname, displayval, urlappend, linknameid):
     shownet = displayval
     if meraki_dashboard_map:
-        mapjson = json.loads(meraki_dashboard_map.replace("'", '"'))
+        mapjson = meraki_dashboard_map          #json.loads(meraki_dashboard_map.replace("'", '"'))
         if linktype in mapjson:
             if linkname in mapjson[linktype]:
                 shownet = "<a href='" + mapjson[linktype][linkname]["baseurl"] + urlappend + "'>" + displayval + "</a>"
