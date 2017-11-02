@@ -1,7 +1,7 @@
 {
   "name": "Cisco Spark Operations Bot",
   "description": "Cisco Spark Operations Bot",
-  "repository": "https://github.com/joshand/spark-operations-bot",
+  "repository": "https://github.com/meraki/spark-operations-bot",
   "addons": [],
   "env": {
     "SPARK_BOT_URL": {

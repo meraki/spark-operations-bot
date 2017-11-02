@@ -1,9 +1,13 @@
+'''
+    This module is specifically for Umbrella log collection operations. This is for the Amazon S3 API.
+'''
 import os
 import boto3
 from pathlib import Path
-import time
-import sys
 
+# ========================================================
+# Load required parameters from environment variables
+# ========================================================
 
 s3_bucket = os.getenv("S3_BUCKET")
 s3_key = os.getenv("S3_ACCESS_KEY_ID")
@@ -12,9 +16,24 @@ s3_secret = os.getenv("S3_SECRET_ACCESS_KEY")
 if not s3_bucket or not s3_key or not s3_secret:
     print("umbrella_log_collector.py - Missing Environment Variable.")
 
+# ========================================================
+# Initialize Program - Function Definitions
+# ========================================================
+
 
 def download_dir(client, resource, dist, local='/tmp', bucket=''):
-    # https://stackoverflow.com/questions/31918960/boto3-to-download-all-files-from-a-s3-bucket
+    '''
+    This code was taken from here:
+    https://stackoverflow.com/questions/31918960/boto3-to-download-all-files-from-a-s3-bucket
+
+    :param client:
+    :param resource:
+    :param dist:
+    :param local:
+    :param bucket:
+    :return: Nothing. This function will download files to the local filesystem.
+    '''
+
     paginator = client.get_paginator('list_objects')
     for result in paginator.paginate(Bucket=bucket, Delimiter='/', Prefix=dist):
         if result.get('CommonPrefixes') is not None:
@@ -35,26 +54,52 @@ def download_dir(client, resource, dist, local='/tmp', bucket=''):
 
 
 def cleanup_files(cl, dist, local='/tmp'):
+    '''
+    Check to see if any files / directories need to be removed from the file system. First, take a list of all objects
+    in the bucket, then compare to the file system. If anything exists on the filesystem that is not in the object
+    list, delete.
+
+    :param cl: boto3 client
+    :param dist: String. Subfolder to clean up.
+    :param local: String. Base path to clean up. (so it's local/dist or local\dist)
+    :return: Nothing
+    '''
+
+    # Get list of all AWS S3 objects
     s3flist = []
     objd = cl.list_objects_v2(Bucket=s3_bucket)
     for x in objd["Contents"]:
         s3flist.append(x["Key"])
 
+    # Get list of all filesystem objects
     flist = os.listdir(local + os.sep + dist)
+    # Iterate list of fs objects
     for fdir in flist:
+        # Everything in the base path should be a directory. Only continue if this is a directory object
         if os.path.isdir(local + os.sep + dist + fdir):
+            # Check to see how many files are in this directory
             flist2 = os.listdir(local + os.sep + dist + fdir)
+            # If 0 files, delete directory
             if len(flist2) == 0:
                 print("removing empty directory " + local + os.sep + dist + fdir)
                 os.rmdir(local + os.sep + dist + fdir)
+
+            # Iterate list of files
             for fn in flist2:
                 fpath = dist + fdir + os.sep + fn
+                # If this file is not in the Amazon S3 object list, then we want to delete
                 if fpath not in s3flist:
                     print("delete " + local + os.sep + fpath)
                     os.remove(local + os.sep + fpath)
 
 
 def get_logs():
+    '''
+    Main entry point for log collection.
+
+    :return: Nothing
+    '''
+
     print("Parsing Umbrella logs...")
     cl = boto3.client(
             's3',
