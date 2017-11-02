@@ -1,9 +1,15 @@
+'''
+    This module is specifically for Spark Call-related operations. This is for the Spark Call API.
+'''
+
 import base64
 import requests
 import json
 import os
-import sys
 
+# ========================================================
+# Load required parameters from environment variables
+# ========================================================
 
 spark_api_token = os.getenv("SPARK_API_TOKEN")
 if not spark_api_token:
@@ -13,6 +19,10 @@ else:
     header = {
         'Authorization': "Bearer " + spark_api_token
     }
+
+# ========================================================
+# Initialize Program - Function Definitions
+# ========================================================
 
 
 def decode_base64(data):
@@ -30,6 +40,14 @@ def decode_base64(data):
 
 
 def spark_call_get_org():
+    '''
+    This function will retrieve the user details for the specified user's token. The Organization that the user belongs
+    to is part of what is returned. This is returned as a encoded value, so we will base64 decode that and extract the
+    UUID as well.
+
+    :return: UUID of the organization associated with the specified user's token.
+    '''
+
     url = "https://api.ciscospark.com/v1/people/me"
 
     r = requests.request("GET", url, headers=header)
@@ -40,8 +58,10 @@ def spark_call_get_org():
     except:
         return "Error. Server returned '" + str(r.status_code) + " - " + r.reason
 
+    # Retrieve orgId from Dictionary
     if "orgId" in rjson:
         orgid = rjson["orgId"]
+        # Base64 Decode and strip the header to get the UUID
         orguuid = decode_base64(orgid.encode("utf-8")).decode("utf-8")
         orguuid = orguuid.replace("ciscospark://us/ORGANIZATION/", "")
     else:
@@ -51,6 +71,13 @@ def spark_call_get_org():
 
 
 def spark_api_get_dev_status_report():
+    '''
+    This function calls an undocumented API to get a list of all devices in the Organization.
+
+    :return: Dictionary. Dict of all devices in the org.
+    '''
+
+    # Start by getting the organization UUID
     orgid = spark_call_get_org()
     if orgid == "":
         return ["Error. No orgid found."]
@@ -69,18 +96,25 @@ def spark_api_get_dev_status_report():
     dev_tot = 0
     dev_off = 0
 
+    # rjson["users"] is a list of all users in the organization. Iterate the users
     for u in rjson["users"]:
+        # Make sure the user has one or more phones.
         if "phones" in u:
+            # u["phones"] is a list of all phones for the user. Iterate the phones.
             for d in u["phones"]:
+                # Increment total number of phones and get information for this phone
                 dev_tot += 1
                 dev_model = d["description"]
                 dev_reg = d["registrationStatus"]
+                # If the phone isn't registered, tag the offline attribute, and increment the offline counter as well
                 if dev_reg != "Registered":
                     dev_offline = 1
                     dev_off += 1
                 else:
                     dev_offline = 0
 
+                # We will also create a catalog of devices, and how many total / offline devices of that type are
+                # present
                 if dev_model in dev_mod_arr:
                     dev_mod_arr[dev_model]["num"] += 1
                     if dev_offline == 1:
@@ -94,6 +128,14 @@ def spark_api_get_dev_status_report():
 
 
 def spark_call_search_user(username):
+    '''
+    This function calls an undocumented API to search for a specific user in the organization
+
+    :param username: String. The username to search for
+    :return: List. List of all user IDs that match the search.
+    '''
+
+    # Start by getting the organization UUID
     orgid = spark_call_get_org()
     if orgid == "":
         return ["Error. No orgid found."]
@@ -109,8 +151,10 @@ def spark_call_search_user(username):
         return ["Error. Server returned '" + str(r.status_code) + " - " + r.reason]
 
     uidlist = []
+    # rjson["Resources"] is a list of results from the search
     if "Resources" in rjson:
         tr = rjson["Resources"]
+        # Iterate list of results, and append the userid to the output list.
         for rj in tr:
             uidlist.append(rj["id"])
 
@@ -118,6 +162,14 @@ def spark_call_search_user(username):
 
 
 def spark_call_get_user_info(userid):
+    '''
+    This function calls an undocumented API to get details about a specific userid in an organization
+
+    :param userid: String. Userid to get information about.
+    :return: Dictionary. List of all phones/numbers assigned to the provided user.
+    '''
+
+    # Start by getting the organization UUID
     orgid = spark_call_get_org()
     if orgid == "":
         return ["Error. No orgid found."]
@@ -136,11 +188,15 @@ def spark_call_get_user_info(userid):
     devlist = []
     retjson = {}
 
+    # Make sure the user has 1 or more phones assigned to them
     if "phones" in rjson:
         retjson["phones"] = {}
+        # rjson["phones"] is a list of all phones for a user. Iterate the list
         for dev in rjson["phones"]:
+            # Add this device to the device list
             devlist.append(dev["description"] + " [" + dev["registrationStatus"] + "]")
 
+            # Add device information to output dictionary
             if dev["mac"] not in retjson["phones"]:
                 retjson["phones"][dev["mac"]] = {}
             retjson["phones"][dev["mac"]]["description"] = dev["description"]
@@ -148,13 +204,17 @@ def spark_call_get_user_info(userid):
             retjson["phones"][dev["mac"]]["ipAddress"] = dev.get("ipAddress", "N/A")
             retjson["phones"][dev["mac"]]["mac"] = dev["mac"]
 
+    # Make sure the user has 1 or more numbers assigned to them
     if "numbers" in rjson:
         retjson["numbers"] = {}
+        # rjson["numbers"] is a list of all numbers for a user. Iterate the list
         for num in rjson["numbers"]:
+            # Add internal number information to output dictionary
             if num["internal"] not in retjson["numbers"]:
                 retjson["numbers"][num["internal"]] = {}
             retjson["numbers"][num["internal"]]["internal"] = num["internal"]
 
+            # Add external number information to output dictionary
             if num["external"] is None:
                 numlist.append("Extension " + num["internal"])
             else:
@@ -165,16 +225,31 @@ def spark_call_get_user_info(userid):
 
 
 def get_spark_call_health(incoming_msg, rettype):
+    '''
+    Get health status from Spark Call.
+
+    :param incoming_msg: String. this is the message that is posted in Spark. The client's username will be parsed
+                        out from this.
+    :param rettype: String. html or json
+    :return: String (if rettype = html). This is a fully formatted string that will be sent back to Spark
+             Dictionary (if rettype = json). Raw data that is expected to be consumed in cico_combined
+    '''
+
+    # Get report of all devices in organization
     spark_data = spark_api_get_dev_status_report()
 
+    # If returning json, don't do any processing, just return raw data
     if rettype == "json":
         return spark_data
     else:
         retstr = "<h3>Spark Details:</h3>"
         retstr += "<a href='https://admin.ciscospark.com'>Spark Dashboard</a><br><ul>"
 
+        # Iterate the list of all phones, which will be sorted by model
         for d in sorted(spark_data):
+            # Templates and other things can show up in this list. Ensure that the device model includes "Cisco"
             if d.find("Cisco") >= 0:
+                # If there are one or more offline devices, toggle the warning indicator
                 if spark_data[d]["offline"] > 0:
                     devicon = chr(0x2757) + chr(0xFE0F)
                 else:
@@ -187,25 +262,41 @@ def get_spark_call_health(incoming_msg, rettype):
 
 
 def get_spark_call_clients(incoming_msg, rettype):
+    '''
+    Get client details from Spark Call.
+
+    :param incoming_msg: String. this is the message that is posted in Spark. The client's username will be parsed
+                        out from this.
+    :param rettype: String. html or json
+    :return: String (if rettype = html). This is a fully formatted string that will be sent back to Spark
+             Dictionary (if rettype = json). Raw data that is expected to be consumed in cico_combined
+    '''
+
+    # Get client username
     cmdlist = incoming_msg.text.split(" ")
     client_id = cmdlist[len(cmdlist)-1]
 
+    # Search for user in Spark Call
     userdata = {"html": "", "json": {}}
     userinfo = spark_call_search_user(client_id)
+    # Iterate list of found users, getting details about each
     for u in userinfo:
         userdata = spark_call_get_user_info(u)
 
+    # If returning json, don't do any processing, just return raw data
     if rettype == "json":
         return userdata
     else:
         retval = "<h3>Collaboration:</h3>"
         retval += "<strong>Phones:</strong><br>"
+        # Iterate list of phones to create output
         for d in userdata["phones"]:
             dev = userdata["phones"][d]
             retval += dev["description"] + " [<em>" + dev["registrationStatus"] + "</em>]<br>"
             retval += "<i>IP:</i> " + dev.get("ipAddress", "N/A") + "<br>"
             retval += "<i>MAC:</i> " + dev["mac"] + "<br>"
 
+        # Iterate list of numbers to create output
         for n in userdata["numbers"]:
             num = userdata["numbers"][n]
             retval += "<br><strong>Numbers:</strong><br>"
@@ -218,8 +309,20 @@ def get_spark_call_clients(incoming_msg, rettype):
 
 
 def get_spark_call_health_html(incoming_msg):
+    '''
+    Shortcut for bot health command, for html
+
+    :param incoming_msg: this is the message that is posted in Spark
+    :return: this is a fully formatted string that will be sent back to Spark
+    '''
     return get_spark_call_health(incoming_msg, "html")
 
 
 def get_spark_call_clients_html(incoming_msg):
+    '''
+    Shortcut for bot check command, for html
+
+    :param incoming_msg: this is the message that is posted in Spark
+    :return: this is a fully formatted string that will be sent back to Spark
+    '''
     return get_spark_call_clients(incoming_msg, "html")

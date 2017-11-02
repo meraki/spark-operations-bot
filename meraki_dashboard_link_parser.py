@@ -1,3 +1,9 @@
+'''
+    This module is specifically for Meraki Dashboard related operations. This code is responsible for screen scraping
+    the HTTP Dashboard interface to get the necessary data. It is an optional step, and what it provides is the
+    ability to cross-launch directly to a device, network, or client from the bot.
+'''
+
 import cico_meraki
 import requests
 import os
@@ -6,6 +12,9 @@ import sys
 import urllib
 import time
 
+# ========================================================
+# Load required parameters from environment variables
+# ========================================================
 
 meraki_http_un = os.getenv("MERAKI_HTTP_USERNAME")
 meraki_http_pw = os.getenv("MERAKI_HTTP_PASSWORD")
@@ -14,14 +23,25 @@ meraki_org = os.getenv("MERAKI_ORG")
 if not meraki_org:
     meraki_org = cico_meraki.get_meraki_one_org()
 
-
 if not meraki_http_un or not meraki_http_pw or not meraki_api_token or not meraki_org:
     print("meraki_dashboard_link_parser.py - Missing Environment Variable.")
 
 header = {"X-Cisco-Meraki-API-Key": meraki_api_token}
 
+# ========================================================
+# Initialize Program - Function Definitions
+# ========================================================
+
 
 def meraki_www_get_token(strcontent):
+    '''
+    When logging into the dashboard, there is an "authenticity_token" hidden field. If this field is not included in
+    the login POST, login will fail. Scrape this from the HTML and return so it can be POST'ed to login.
+
+    :param strcontent: String. Raw HTML of base login page.
+    :return: String. Authenticity Token.
+    '''
+
     tokenident = '<input name="authenticity_token" type="hidden" value="'
     tokenstart = strcontent.find(tokenident)
     tokenval = strcontent[tokenstart + len(tokenident):]
@@ -32,6 +52,17 @@ def meraki_www_get_token(strcontent):
 
 
 def meraki_www_get_settings(strcontent, settingval, settingfull):
+    '''
+    In the dashboard, there are a large number of settings hidden in the code. This function will parse and retrieve
+    the value of a specific setting
+
+    :param strcontent: String. Raw HTML of the page.
+    :param settingval: String. If the setting is in the "Mkiconf.setting = " format, pass "setting" here. Otherwise...
+    :param settingfull: String. If the setting is named or punctuated differently, pass the exact string here.
+    :return: String. The value of the requested setting
+    '''
+
+    # Determine whether this is a standard setting or not, and set tokenident to the exact name of the setting
     if settingfull != "":
         tokenident = settingfull
     else:
@@ -50,6 +81,15 @@ def meraki_www_get_settings(strcontent, settingval, settingfull):
 
 
 def meraki_www_get_path(devtype, devid):
+    '''
+    In the dashboard HTTP interface, different device paths have different URL construction. This function will parse
+    the device type in order to generate the appropriate URL construction.
+
+    :param devtype: String. Device type. eg, switch, wireless
+    :param devid: String. Device ID that will be part of the path.
+    :return: String. Relevant constructed URL.
+    '''
+
     if devid != "":
         newdevid = "/" + devid
     else:
@@ -69,6 +109,14 @@ def meraki_www_get_path(devtype, devid):
     return retparm
 
 def meraki_www_get_org_list(strcontent):
+    '''
+    When logging in, there is a page that lists the organizations that you have access to. This function will parse
+    this page and return a dictionary of the organizations.
+
+    :param strcontent: String. Raw HTML content of the org selection page
+    :return: Dictionary. All of the organizations including id and name.
+    '''
+
     orgident = '<a href="/login/org_choose?eid='
     orgarr = strcontent.split(orgident)
     retarr = {}
@@ -83,6 +131,14 @@ def meraki_www_get_org_list(strcontent):
 
 
 def get_meraki_org_name():
+    '''
+    This is an API call that will get a list of all organizations that the API key has access to. It will then search
+    the list of organizations for the ID matching the orgid that was specified/derived for the bot, and then return
+    the name of that organization.
+
+    :return: String. The organization name for the specified/derived organization.
+    '''
+
     # Get a list of all networks associated with the specified organization
     orgname = ""
     url = "https://dashboard.meraki.com/api/v0/organizations"
@@ -96,6 +152,15 @@ def get_meraki_org_name():
 
 
 def get_meraki_org_url(pagecontent):
+    '''
+    This function will take the Dictionary of organizations coming from meraki_www_get_org_list, and search that for
+    the name of the organization from get_meraki_org_name. When it has found a match, it will return the full URL
+    for that organization.
+
+    :param pagecontent: String. Raw HTML of the organization page.
+    :return: String. URL of the organization to load.
+    '''
+
     orgurl = ""
     olist = json.loads(meraki_www_get_org_list(pagecontent))
     org_name_find = get_meraki_org_name()
@@ -107,6 +172,12 @@ def get_meraki_org_url(pagecontent):
 
 
 def get_meraki_api_info():
+    '''
+    Unused?
+
+    :return:
+    '''
+
     # Get a list of all networks associated with the specified organization
     netjson = cico_meraki.get_meraki_networks()
     # Parse list of networks to extract/create URLs needed to get list of devices
@@ -123,6 +194,13 @@ def get_meraki_api_info():
 
 
 def get_meraki_http_info():
+    '''
+    Main entry point for function. This function handles the login process, the org redirection, parsing the page
+    content, and returning/parsing the XHR data.
+
+    :return: Dictionary. Dict of relevant mapping data to create cross-launch links.
+    '''
+
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:51.0) Gecko/20100101 Firefox/51.0'}
     loginurl = "https://dashboard.meraki.com/login/login"
     session = requests.Session()
@@ -140,6 +218,8 @@ def get_meraki_http_info():
     rcontent = r.content.decode("UTF-8")
     cookies = requests.utils.cookiejar_from_dict(requests.utils.dict_from_cookiejar(session.cookies))
 
+    # Check to see if the org selection page has loaded. I've heard that this doesn't always happen, but I've not yet
+    # found a user to test with that does not hit this page.
     if rcontent.lower().find("accounts for " + meraki_http_un.lower()):
         orgurl = get_meraki_org_url(rcontent)
         print(orgurl)
@@ -151,15 +231,17 @@ def get_meraki_http_info():
     r = session.get(orgurl, headers=headers, cookies=cookies)
     rcontent = r.content.decode("UTF-8")
 
+    # Parse content to get auth token and base url. auth token is required for XHR requests, and Base URL is...
+    # possibly the last network loaded when the user last logged out?
     xhrtoken = meraki_www_get_settings(rcontent, "authenticity_token", "")
     baseurl = meraki_www_get_settings(rcontent, "base_url", "")
 
+    # Search the history to get the most recent FQDN so we can link directly to the appropriate shard.
     for resp in r.history:
         o = urllib.parse.urlparse(resp.url)
         mhost = o.netloc
 
     #"https://%2%%3%manage/organization/overview#t=network"
-
 
     # Load administered orgs XHR Data
     #xhrurl = "https://" + mhost + baseurl + "manage/organization/administered_orgs"
@@ -173,13 +255,15 @@ def get_meraki_http_info():
     outjson = {}
     mbase = rjson["networks"]
     outjson = {"networks": {}, "devices": {}}
+    # Now, we will iterate the data loaded from the XHR request to generate the mapping data that we need.
     for jitem in mbase:
+        # This generates the link to the network
         outjson["networks"][mbase[jitem]["name"]] = {"baseurl": "https://" + mhost + "/" + mbase[jitem]["tag"] + "/n/" + mbase[jitem]["eid"] + meraki_www_get_path(mbase[jitem]["type"], "")}           #, "id": mbase[jitem]["id"]
 
+        # This generates the link to the device
         for jdev in rjson["nodes"]:
             if rjson["nodes"][jdev]["ng_id"] == mbase[jitem]["id"]:
                 outjson["devices"][rjson["nodes"][jdev]["mac"]] = {"baseurl": "https://" + mhost + "/" + mbase[jitem]["tag"] + "/n/" + mbase[jitem]["eid"] + meraki_www_get_path(mbase[jitem]["type"], rjson["nodes"][jdev]["id"]), "desc": rjson["nodes"][jdev]["name"]}              #mbase[jitem]["id"]          #rjson["nodes"][jdev]["serial"]
-
 
     return outjson
 
