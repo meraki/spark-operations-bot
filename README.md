@@ -1,7 +1,13 @@
 # CICO
 Cisco Infrastructure Chat Ops
 
-This bot leverages the Spark Bot framework found [here](https://github.com/imapex/ciscosparkbot).
+This bot leverages the Spark Bot framework found [here](https://github.com/imapex/ciscosparkbot). It has two primary functions:
+
+1. The bot is able to provide an overall health of your environment, which can include Meraki, Spark Calling, and Umbrella. It will tell you if you have any network devices down in your Meraki network, and optionally give you a way to cross-launch directly into the Meraki dashboard to troubleshoot. It will show how many phones are configured in Spark Call, and how many are offline by device type. And, it will show you if there is any malicious traffic detected by Umbrella.
+![bot_health](images/bot_health.png)
+
+2. The bot is able to give you a status of an individual user, which can include Meraki, Spark Calling, and Umbrella. It will show you the device(s) detected for that user in the Meraki dashboard clients list (also including Systems Manager if available), optionally giving you a way to cross-launch directly into the Meraki dashboard to troubleshoot any issues on the network device. It also lists any phones configured for that user in Spark Call, also with an optional link to cross-launch back into the Meraki dashboard for troubleshooting. Finally, it is able to show you whether there is any malicious traffic detected for that specific user in Umbrella.
+![bot_check](images/bot_check.png)
 
 # Contents
 - [Prerequisites](#prerequisites)
