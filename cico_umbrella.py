@@ -8,6 +8,12 @@ import io
 from stat import S_ISREG, S_ISDIR, ST_CTIME, ST_MODE
 
 # ========================================================
+# Load required parameters from environment variables
+# ========================================================
+
+umbrella_over_dash = os.getenv("UMBRELLA_OVERRIDE_DASHBOARD")
+
+# ========================================================
 # Initialize Program - Function Definitions
 # ========================================================
 
@@ -111,7 +117,10 @@ def get_umbrella_health(incoming_msg, rettype):
     logdata = parse_umbrella_logs()
 
     retmsg = "<h3>Umbrella Details (Last 24 hours):</h3>"
-    retmsg += "<a href='https://login.umbrella.com/'>Umbrella Dashboard</a><br><ul>"
+    if umbrella_over_dash:
+        retmsg += "<a href='" + umbrella_over_dash + "'>Umbrella Dashboard</a><br><ul>"
+    else:
+        retmsg += "<a href='https://login.umbrella.com/'>Umbrella Dashboard</a><br><ul>"
     # From a health perspective, we are interested in aggregate data. Make sure this data exists
     if "Aggregate" in logdata:
         retmsg += "<li>Total Requests: " + str(logdata["Aggregate"]["Total"]) + "</li>"

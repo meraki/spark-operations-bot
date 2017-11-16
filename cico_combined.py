@@ -2,10 +2,20 @@
     This module is specifically for interoperability between the various individual modules. Any generic product code
     should be placed into a product specific module, and any relevant integration should be added here.
 '''
+import os
 import cico_meraki
 import cico_spark_call
 import cico_umbrella
 import cico_common
+
+# ========================================================
+# Load required parameters from environment variables
+# ========================================================
+
+meraki_client_to = os.getenv("MERAKI_CLIENT_TIMESPAN")
+if not meraki_client_to:
+    meraki_client_to = 86400
+
 
 # ========================================================
 # Initialize Program - Function Definitions
@@ -55,6 +65,7 @@ def get_clients(incoming_msg):
     retscn = ""
     retu = ""
     retmsg = ""
+    devcount = 0
 
     sclients = {}
     mclients = {}
@@ -86,7 +97,7 @@ def get_clients(incoming_msg):
     # Initialize individual product return strings
     retm = "<h3>Associated Clients:</h3>"
     retsc = "<h3>Collaboration:</h3>"
-    retsc += "<b>Phones:</b><br>"
+    retsc += "<b>Phones:</b>"
 
     # netlist is a list of all Meraki Networks in the supplied or derived organization. Iterate these, sorted by name.
     for net in sorted(netlist):
@@ -100,13 +111,16 @@ def get_clients(incoming_msg):
                     # If the description of the client matches the username specified in Spark, and if this specific
                     # client has a switchport mapping, then continue (duplicate clients from MX security appliances
                     # will also be in this list, the switchport check is used to exclude those)
-                    if cli["description"] == client_id and "switchport" in cli:
+                    if cli["description"] == client_id and "switchport" in cli and cli["switchport"] is not None:
                         devbase = netlist[net]["devices"][dev]["info"]
                         # These functions generate the cross-launch links (if available) for the given
                         # client/device/port
-                        showdev = cico_meraki.meraki_create_dashboard_link("devices", devbase["mac"], devbase["name"], "?timespan=86400", 0)
-                        showport = cico_meraki.meraki_create_dashboard_link("devices", devbase["mac"], str(cli["switchport"]), "/ports/" + str(cli["switchport"]) + "?timespan=86400", 1)
+                        showdev = cico_meraki.meraki_create_dashboard_link("devices", devbase["mac"], devbase["name"], "?timespan=" + meraki_client_to, 0)
+                        showport = cico_meraki.meraki_create_dashboard_link("devices", devbase["mac"], str(cli["switchport"]), "/ports/" + str(cli["switchport"]) + "?timespan=" + meraki_client_to, 1)
                         showcli = cico_meraki.meraki_dashboard_client_mod(showdev, cli["id"], cli["dhcpHostname"])
+                        if devcount > 0:
+                            retm += "<br>"
+                        devcount += 1
                         retm += "<i>Computer Name:</i> " + showcli + "<br>"
 
                         # Iterate the Systems Manager list to see if the client exists there. Iterate through networks.
@@ -135,18 +149,18 @@ def get_clients(incoming_msg):
                     # If there are phones available, and if the mac address of the client being reviewed currently is
                     # one of the devices in that list, and if there is a switchport field (again to eliminate
                     # duplicate MX entries), then we will provide additional information for the phone.
-                    elif "phones" in sclients and cli["mac"] in sclients["phones"] and "switchport" in cli:
+                    elif "phones" in sclients and cli["mac"] in sclients["phones"] and "switchport" in cli and cli["switchport"] is not None:
                         devbase = netlist[net]["devices"][dev]["info"]
                         # These functions generate the cross-launch links (if available) for the given
                         # client/device/port
-                        showdev = cico_meraki.meraki_create_dashboard_link("devices", devbase["mac"], devbase["name"], "?timespan=86400", 0)
-                        showport = cico_meraki.meraki_create_dashboard_link("devices", devbase["mac"], str(cli["switchport"]), "/ports/" + str(cli["switchport"]) + "?timespan=86400", 1)
+                        showdev = cico_meraki.meraki_create_dashboard_link("devices", devbase["mac"], devbase["name"], "?timespan=" + meraki_client_to, 0)
+                        showport = cico_meraki.meraki_create_dashboard_link("devices", devbase["mac"], str(cli["switchport"]), "/ports/" + str(cli["switchport"]) + "?timespan=" + meraki_client_to, 1)
                         showcli = cico_meraki.meraki_dashboard_client_mod(showdev, cli["id"], cli["dhcpHostname"])
 
                         # No Systems Manager references here, but we will add the cross-referened data for the phone
                         # itself, like it's mac address, description, and whether it is registered.
                         scbase = sclients["phones"][cli["mac"]]
-                        retsc += scbase["description"] + " (<i>" + scbase["registrationStatus"] + "</i>)<br>"
+                        retsc += "<br>" + scbase["description"] + " (<i>" + scbase["registrationStatus"] + "</i>)<br>"
                         retsc += "<i>Device Name:</i> " + showcli + "<br>"
                         retsc += "<i>IP:</i> " + cli["ip"] + "<br>"
                         retsc += "<i>MAC:</i> " + cli["mac"] + "<br>"
