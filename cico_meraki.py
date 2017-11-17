@@ -19,7 +19,11 @@ from urllib3.util.retry import Retry
 # Load required parameters from environment variables
 # ========================================================
 
+meraki_client_to = os.getenv("MERAKI_CLIENT_TIMESPAN")
+if not meraki_client_to:
+    meraki_client_to = 86400
 meraki_api_token = os.getenv("MERAKI_API_TOKEN")
+meraki_over_dash = os.getenv("MERAKI_OVERRIDE_DASHBOARD")
 #meraki_dashboard_map = os.getenv("MERAKI_DASHBOARD_MAP")       -- removed: enabled link generation at run-time --
 header = {"X-Cisco-Meraki-API-Key": meraki_api_token}
 
@@ -122,6 +126,8 @@ def meraki_create_dashboard_link(linktype, linkname, displayval, urlappend, link
             # If the given mac address or network name is present in the map (it should be)
             if linkname in mapjson[linktype]:
                 # Create the hyperlink
+                if not displayval:
+                    displayval = linkname
                 shownet = "<a href='" + mapjson[linktype][linkname]["baseurl"] + urlappend + "'>" + displayval + "</a>"
 
     # If shownet is the same as displayval, it means there was a problem above. Try to add generic link... if this is
@@ -452,7 +458,10 @@ def get_meraki_health(incoming_msg, rettype):
     totaloffdev = 0
     devicon = ""
     retmsg = "<h3>Meraki Details:</h3>"
-    retmsg += "<a href='https://dashboard.meraki.com/'>Meraki Dashboard</a><br><ul>"
+    if meraki_over_dash:
+        retmsg += "<a href='" + meraki_over_dash + "'>Meraki Dashboard</a><br><ul>"
+    else:
+        retmsg += "<a href='https://dashboard.meraki.com/'>Meraki Dashboard</a><br><ul>"
     # Iterate through all of the networks, sorted by name
     for net in sorted(newnetlist):
         # Iterate through all devices in the currently iterated network
@@ -505,7 +514,7 @@ def get_meraki_clients(incoming_msg, rettype):
     smlist = do_multi_get(smnet, [], "id", "", 6, "", "")
     newsmlist = do_sort_smclients(smlist)
     # Parse list of devices to extract/create URLs needed to get list of clients
-    urldev = collect_url_list(netlist, "https://dashboard.meraki.com/api/v0/devices/$1/clients?timespan=86400", "devices", "serial", "", "")
+    urldev = collect_url_list(netlist, "https://dashboard.meraki.com/api/v0/devices/$1/clients?timespan=" + meraki_client_to, "devices", "serial", "", "")
     # Get a list of all clients associated with the devices associated to the networks associated to the organization
     netlist = do_multi_get(urldev, netlist, "devices", "serial", 6, "", "clients")
 
@@ -530,8 +539,8 @@ def get_meraki_clients(incoming_msg, rettype):
                             devbase = netlist[net]["devices"][dev]["info"]
                             # These functions generate the cross-launch links (if available) for the given
                             # client/device/port
-                            showdev = meraki_create_dashboard_link("devices", devbase["mac"], devbase["name"], "?timespan=86400", 0)
-                            showport = meraki_create_dashboard_link("devices", devbase["mac"], str(cli["switchport"]), "/ports/" + str(cli["switchport"]) + "?timespan=86400", 1)
+                            showdev = meraki_create_dashboard_link("devices", devbase["mac"], devbase["name"], "?timespan=" + meraki_client_to, 0)
+                            showport = meraki_create_dashboard_link("devices", devbase["mac"], str(cli["switchport"]), "/ports/" + str(cli["switchport"]) + "?timespan=" + meraki_client_to, 1)
                             showcli = meraki_dashboard_client_mod(showdev, cli["id"], cli["dhcpHostname"])
                             retmsg += "<i>Computer Name:</i> " + showcli + "<br>"
 

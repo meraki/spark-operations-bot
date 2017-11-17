@@ -12,6 +12,7 @@ import os
 # ========================================================
 
 spark_api_token = os.getenv("SPARK_API_TOKEN")
+spark_over_dash = os.getenv("SPARK_OVERRIDE_DASHBOARD")
 if not spark_api_token:
     print("cico_spark_call.py - Missing Environment Variable.")
     header = {}
@@ -242,8 +243,11 @@ def get_spark_call_health(incoming_msg, rettype):
     if rettype == "json":
         return spark_data
     else:
-        retstr = "<h3>Spark Details:</h3>"
-        retstr += "<a href='https://admin.ciscospark.com'>Spark Dashboard</a><br><ul>"
+        retmsg = "<h3>Spark Details:</h3>"
+        if spark_over_dash:
+            retmsg += "<a href='" + spark_over_dash + "'>Spark Dashboard</a><br><ul>"
+        else:
+            retmsg += "<a href='https://admin.ciscospark.com'>Spark Dashboard</a><br><ul>"
 
         # Iterate the list of all phones, which will be sorted by model
         for d in sorted(spark_data):
@@ -255,10 +259,10 @@ def get_spark_call_health(incoming_msg, rettype):
                 else:
                     devicon = ""
 
-                retstr += "<li>" + str(spark_data[d]["offline"]) + " offline out of " + str(spark_data[d]["num"]) + " " + d + "(s)." + devicon + "</li>"
-        retstr += "</ul><strong>" + str(spark_data["Total"]["offline"]) + " phone(s) offline out of a total of " + str(spark_data["Total"]["num"]) + " phone(s).</strong>"
+                retmsg += "<li>" + str(spark_data[d]["offline"]) + " offline out of " + str(spark_data[d]["num"]) + " " + d + "(s)." + devicon + "</li>"
+        retmsg += "</ul><strong>" + str(spark_data["Total"]["offline"]) + " phone(s) offline out of a total of " + str(spark_data["Total"]["num"]) + " phone(s).</strong>"
 
-        return retstr
+        return retmsg
 
 
 def get_spark_call_clients(incoming_msg, rettype):
@@ -287,25 +291,25 @@ def get_spark_call_clients(incoming_msg, rettype):
     if rettype == "json":
         return userdata
     else:
-        retval = "<h3>Collaboration:</h3>"
-        retval += "<strong>Phones:</strong><br>"
+        retmsg = "<h3>Collaboration:</h3>"
+        retmsg += "<strong>Phones:</strong><br>"
         # Iterate list of phones to create output
         for d in userdata["phones"]:
             dev = userdata["phones"][d]
-            retval += dev["description"] + " [<em>" + dev["registrationStatus"] + "</em>]<br>"
-            retval += "<i>IP:</i> " + dev.get("ipAddress", "N/A") + "<br>"
-            retval += "<i>MAC:</i> " + dev["mac"] + "<br>"
+            retmsg += dev["description"] + " [<em>" + dev["registrationStatus"] + "</em>]<br>"
+            retmsg += "<i>IP:</i> " + dev.get("ipAddress", "N/A") + "<br>"
+            retmsg += "<i>MAC:</i> " + dev["mac"] + "<br>"
 
         # Iterate list of numbers to create output
         for n in userdata["numbers"]:
             num = userdata["numbers"][n]
-            retval += "<br><strong>Numbers:</strong><br>"
+            retmsg += "<br><strong>Numbers:</strong><br>"
             if "external" in num:
-                retval += num["external"] + " (x" + num["internal"] + ")\n"
+                retmsg += num["external"] + " (x" + num["internal"] + ")\n"
             else:
-                retval += "Extension " + num["internal"] + "<br>"
+                retmsg += "Extension " + num["internal"] + "<br>"
 
-        return retval
+        return retmsg
 
 
 def get_spark_call_health_html(incoming_msg):
