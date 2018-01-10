@@ -105,7 +105,12 @@ def spark_api_get_dev_status_report():
             for d in u["phones"]:
                 # Increment total number of phones and get information for this phone
                 dev_tot += 1
-                dev_model = d["description"]
+                dev_desc = d["description"]
+                if dev_desc.find("(") >= 0:
+                    dev_model = dev_desc[dev_desc.find("(")+1:dev_desc.find(")")]
+                    dev_model = dev_model.replace(" SIP", "")
+                else:
+                    dev_model = dev_desc
                 dev_reg = d["registrationStatus"]
                 # If the phone isn't registered, tag the offline attribute, and increment the offline counter as well
                 if dev_reg != "Registered":
@@ -237,32 +242,42 @@ def get_spark_call_health(incoming_msg, rettype):
     '''
 
     # Get report of all devices in organization
+    sparkerror = 0
     spark_data = spark_api_get_dev_status_report()
+    if len(spark_data) == 1:
+        if spark_data[0].find("Error") >= 0:
+            print("Spark reported an error. Unable to show Spark Call Data.")
+            sparkerror = 1
 
     # If returning json, don't do any processing, just return raw data
-    if rettype == "json":
-        return spark_data
-    else:
-        retmsg = "<h3>Spark Details:</h3>"
-        if spark_over_dash:
-            retmsg += "<a href='" + spark_over_dash + "'>Spark Dashboard</a><br><ul>"
+
+    if sparkerror == 0:
+        if rettype == "json":
+            return spark_data
         else:
-            retmsg += "<a href='https://admin.ciscospark.com'>Spark Dashboard</a><br><ul>"
+            retmsg = "<h3>Spark Details:</h3>"
+            if spark_over_dash:
+                retmsg += "<a href='" + spark_over_dash + "'>Spark Dashboard</a><br><ul>"
+            else:
+                retmsg += "<a href='https://admin.ciscospark.com'>Spark Dashboard</a><br><ul>"
 
-        # Iterate the list of all phones, which will be sorted by model
-        for d in sorted(spark_data):
-            # Templates and other things can show up in this list. Ensure that the device model includes "Cisco"
-            if d.find("Cisco") >= 0:
-                # If there are one or more offline devices, toggle the warning indicator
-                if spark_data[d]["offline"] > 0:
-                    devicon = chr(0x2757) + chr(0xFE0F)
-                else:
-                    devicon = ""
+            print(spark_data)
+            # Iterate the list of all phones, which will be sorted by model
+            for d in sorted(spark_data):
+                # Templates and other things can show up in this list. Ensure that the device model includes "Cisco"
+                if d.find("Cisco") >= 0:
+                    # If there are one or more offline devices, toggle the warning indicator
+                    if spark_data[d]["offline"] > 0:
+                        devicon = chr(0x2757) + chr(0xFE0F)
+                    else:
+                        devicon = ""
 
-                retmsg += "<li>" + str(spark_data[d]["offline"]) + " offline out of " + str(spark_data[d]["num"]) + " " + d + "(s)." + devicon + "</li>"
-        retmsg += "</ul><strong>" + str(spark_data["Total"]["offline"]) + " phone(s) offline out of a total of " + str(spark_data["Total"]["num"]) + " phone(s).</strong>"
+                    retmsg += "<li>" + str(spark_data[d]["offline"]) + " offline out of " + str(spark_data[d]["num"]) + " " + d + "(s)." + devicon + "</li>"
+            retmsg += "</ul><strong>" + str(spark_data["Total"]["offline"]) + " phone(s) offline out of a total of " + str(spark_data["Total"]["num"]) + " phone(s).</strong>"
 
-        return retmsg
+            return retmsg
+    else:
+        return ""
 
 
 def get_spark_call_clients(incoming_msg, rettype):
