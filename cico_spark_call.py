@@ -309,20 +309,22 @@ def get_spark_call_clients(incoming_msg, rettype):
         retmsg = "<h3>Collaboration:</h3>"
         retmsg += "<strong>Phones:</strong><br>"
         # Iterate list of phones to create output
-        for d in userdata["phones"]:
-            dev = userdata["phones"][d]
-            retmsg += dev["description"] + " [<em>" + dev["registrationStatus"] + "</em>]<br>"
-            retmsg += "<i>IP:</i> " + dev.get("ipAddress", "N/A") + "<br>"
-            retmsg += "<i>MAC:</i> " + dev["mac"] + "<br>"
+        if "phones" in userdata:
+            for d in userdata["phones"]:
+                dev = userdata["phones"][d]
+                retmsg += dev["description"] + " [<em>" + dev["registrationStatus"] + "</em>]<br>"
+                retmsg += "<i>IP:</i> " + dev.get("ipAddress", "N/A") + "<br>"
+                retmsg += "<i>MAC:</i> " + dev["mac"] + "<br>"
 
         # Iterate list of numbers to create output
-        for n in userdata["numbers"]:
-            num = userdata["numbers"][n]
-            retmsg += "<br><strong>Numbers:</strong><br>"
-            if "external" in num:
-                retmsg += num["external"] + " (x" + num["internal"] + ")\n"
-            else:
-                retmsg += "Extension " + num["internal"] + "<br>"
+        if "numbers" in userdata:
+            for n in userdata["numbers"]:
+                num = userdata["numbers"][n]
+                retmsg += "<br><strong>Numbers:</strong><br>"
+                if "external" in num:
+                    retmsg += num["external"] + " (x" + num["internal"] + ")\n"
+                else:
+                    retmsg += "Extension " + num["internal"] + "<br>"
 
         return retmsg
 

@@ -21,7 +21,7 @@ from urllib3.util.retry import Retry
 
 meraki_client_to = os.getenv("MERAKI_CLIENT_TIMESPAN")
 if not meraki_client_to:
-    meraki_client_to = 86400
+    meraki_client_to = "86400"
 meraki_api_token = os.getenv("MERAKI_API_TOKEN")
 meraki_over_dash = os.getenv("MERAKI_OVERRIDE_DASHBOARD")
 #meraki_dashboard_map = os.getenv("MERAKI_DASHBOARD_MAP")       -- removed: enabled link generation at run-time --
