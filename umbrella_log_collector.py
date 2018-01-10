@@ -41,10 +41,10 @@ def download_dir(client, resource, dist, local='/tmp', bucket=''):
                 download_dir(client, resource, subdir.get('Prefix'), local, bucket)
         if result.get('Contents') is not None:
             for file in result.get('Contents'):
+                print(file.get('Key'))
                 if not os.path.exists(os.path.dirname(local + os.sep + file.get('Key'))):
                      os.makedirs(os.path.dirname(local + os.sep + file.get('Key')))
 
-                print(file.get('Key'))
                 my_file = Path(local + os.sep + file.get('Key'))
                 if my_file.is_file():
                     # already exists, don't download again
@@ -67,30 +67,36 @@ def cleanup_files(cl, dist, local='/tmp'):
 
     # Get list of all AWS S3 objects
     s3flist = []
-    objd = cl.list_objects_v2(Bucket=s3_bucket)
-    for x in objd["Contents"]:
-        s3flist.append(x["Key"])
+    try:
+        objd = cl.list_objects_v2(Bucket=s3_bucket)
+    except:
+        objd = None
+        print("Error Attempting to load S3 Objects")
 
-    # Get list of all filesystem objects
-    flist = os.listdir(local + os.sep + dist)
-    # Iterate list of fs objects
-    for fdir in flist:
-        # Everything in the base path should be a directory. Only continue if this is a directory object
-        if os.path.isdir(local + os.sep + dist + fdir):
-            # Check to see how many files are in this directory
-            flist2 = os.listdir(local + os.sep + dist + fdir)
-            # If 0 files, delete directory
-            if len(flist2) == 0:
-                print("removing empty directory " + local + os.sep + dist + fdir)
-                os.rmdir(local + os.sep + dist + fdir)
+    if objd:
+        for x in objd["Contents"]:
+            s3flist.append(x["Key"])
 
-            # Iterate list of files
-            for fn in flist2:
-                fpath = dist + fdir + os.sep + fn
-                # If this file is not in the Amazon S3 object list, then we want to delete
-                if fpath not in s3flist:
-                    print("delete " + local + os.sep + fpath)
-                    os.remove(local + os.sep + fpath)
+        # Get list of all filesystem objects
+        flist = os.listdir(local + os.sep + dist)
+        # Iterate list of fs objects
+        for fdir in flist:
+            # Everything in the base path should be a directory. Only continue if this is a directory object
+            if os.path.isdir(local + os.sep + dist + fdir):
+                # Check to see how many files are in this directory
+                flist2 = os.listdir(local + os.sep + dist + fdir)
+                # If 0 files, delete directory
+                if len(flist2) == 0:
+                    print("removing empty directory " + local + os.sep + dist + fdir)
+                    os.rmdir(local + os.sep + dist + fdir)
+
+                # Iterate list of files
+                for fn in flist2:
+                    fpath = dist + fdir + os.sep + fn
+                    # If this file is not in the Amazon S3 object list, then we want to delete
+                    if fpath not in s3flist:
+                        print("delete " + local + os.sep + fpath)
+                        os.remove(local + os.sep + fpath)
 
 
 def get_logs():
