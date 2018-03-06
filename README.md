@@ -17,15 +17,18 @@ This bot leverages the Spark Bot framework found [here](https://github.com/imape
   - [Enable API Access](#meraki-api-access)
   - [Get API Token](#meraki-api-token)
   - [Get Organization ID](#meraki-org-id)
+  - [Environment](#meraki-env-setup)
 - [Spark Call Integration](#sparkcall)
   - [Verify Admin Rights](#sparkcall-admin)
   - [Get API Token](#sparkcall-token)
+  - [Environment](#sparkcall-env-setup)
 - [Umbrella Integration](#umbrella)
   - [Create S3 Bucket](#umbrella-s3)
   - [Enable S3 Log Export](#umbrella-export)
   - [Create S3 API User](#umbrella-s3-api)
   - [Set S3 Lifecycle](#umbrella-s3-retention)
-- [Usage](#usage)
+  - [Environment](#umbrella-env-setup)
+- [Bot Usage](#usage)
   - [Execute Locally](#local-run)
   - [Docker](#docker-run)
   - [Heroku](#heroku-run)
@@ -140,6 +143,71 @@ You should see output with one or more networks like this:
 
 Copy your Meraki organization ID to use for the environment variables below.
 
+## Environment<a name="meraki-env-setup"/>
+
+Note: This bot has only been tested with a "Combined" Meraki Network or a standalone Meraki SM Network (no 'health' information is shown for SM-only networks). If you attempt to use the bot with separate wired/wireless/appliance networks, it will likely not work correctly.
+
+### Create Combined Network (if your network is not already configured this way)
+
+1. Log in to the Meraki Dashboard. Choose your oganization if prompted to do so.
+
+2. On the left navigation pane, locate the dropdown arrow representing the currently selected Network.
+
+![meraki_networks](images/meraki_networks.png)
+
+3. Click the dropdown arrow, then select View All Networks.
+
+![meraki_all_networks](images/meraki_all_networks.png)
+
+4. Check the boxes for the networks that you wish to combine (may be some or all depending on your specific needs). Next, click on the "Combine" dropdown.
+
+![meraki_combine](images/meraki_combine.png)
+
+5. Enter a new name for your combined network, and click the Combine button.
+
+![meraki_combine_confirm](images/meraki_combine_confirm.png)
+
+### Verify client naming conventions (to understand/change how the bot locates users in the network)
+
+1. Log in to the Meraki Dashboard. Choose your oganization if prompted to do so.
+
+2. On the left navigation pane, navigate to Network-Wide and Clients.
+
+![meraki_clients](images/meraki_clients.png)
+
+3. Select a client from the list of clients.
+
+![meraki_client_select](images/meraki_client_select.png)
+
+4. By default, when performing a "check &lt;username&gt;", the bot should match the currently displayed name for the selected client. This should match the host name of the client. You might want to search for users by username, which means that the clients will have to be renamed to represent the username of each respective client. In order to change the selected client's name, click the pencil icon next to the name of the client.
+
+![meraki_client_show](images/meraki_client_show.png)
+
+5. Set a new name for the client, then click Save.
+
+![meraki_client_rename](images/meraki_client_rename.png)
+
+### Verify Systems Manager client naming conventions (optional; if you use SM, you can also coorelate SM data alongisde network client data)
+
+1. Log in to the Meraki Dashboard. Choose your oganization if prompted to do so.
+
+2. On the left navigation pane, navigate to Systems Manager and Clients
+
+![meraki_sm_clients](images/meraki_sm_clients.png)
+
+3. Select a client from the list of clients.
+
+![meraki_sm_client_select](images/meraki_sm_client_select.png)
+
+4. By default, when performing a "check &lt;username&gt;", the bot should match the currently displayed name for the selected client. This should match the host name of the client. You might want to search for users by username, which means that the clients will have to be renamed to represent the username of each respective client. In order to change the selected client's name, click the Edit Details link next at the top right of the Client Details section.
+
+![meraki_sm_client_show](images/meraki_sm_client_show.png)
+
+5. In order to coorelate client details to the network client, the name of the network client must match the name of the SM client. Set a name to match the network client, then click Save.
+
+![meraki_sm_client_rename](images/meraki_sm_client_rename.png)
+![meraki_sm_client_save](images/meraki_sm_client_save.png)
+
 # Spark Call Integration<a name="sparkcall"/>
 
 Note: The Spark Call APIs being used have not been officially published. As such, they are subject to change at any time without notification.
@@ -166,6 +234,24 @@ Go to https://developer.ciscospark.com, and log in with a user that has Full Adm
 In the upper right, click the user portrait, then click the "Copy" button to copy your Token for the environment variables below.
 
 ![spark_get_token](images/spark_get_token.png)
+
+## Environment<a name="sparkcall-env-setup"/>
+
+By default, when performing a "check &lt;username&gt;", the bot will match clients in Spark Call where some portion of the First Name, Last Name, User Name, or Display Name match.
+
+1. Log in to the Spark Call Dashboard.
+
+2. On the left navigation pane, click on Users. From the list, you can see the First Name, Last Name, Display Name, and Email for the clients.
+
+![spark_call_users](images/spark_call_users.png)
+
+3. Select a user from the list of users.
+
+![spark_call_user_select](images/spark_call_user_select.png)
+
+4. Update the First Name, Last Name, or Display Name as desired, then click Save.
+
+![spark_call_user_show](images/spark_call_user_show.png)
 
 # Umbrella Integration<a name="umbrella"/>
 
@@ -222,7 +308,25 @@ Check "Current version", check "Expire current version of object", and set the d
 
 ![umbrella_lifecycle2](images/aws_s3_lifecycle_2.png)
 
-# Usage<a name="usage"/>
+## Environment<a name="umbrella-env-setup"/>
+
+By default, when performing a "check &lt;username&gt;", the bot will match clients in Umbrella based on their host name.
+
+1. Log in to the Umbrella Dashboard.
+
+2. On the left navigation pane, click on Identities and Roaming Computers.
+
+![umbrella_roaming](images/umbrella_roaming.png)
+
+3. Select a user from the list of users.
+
+![umbrella_roaming_select](images/umbrella_roaming_select.png)
+
+4. Update the client name as desired, then click Save.
+
+![umbrella_roaming_rename](images/umbrella_roaming_rename.png)
+
+# Bot Usage<a name="usage"/>
 
 There are several ways to run the bot. Use one of the methods below to start up the bot. Once it's running, you can start interacting with it!
 If you are in a 1:1 space with your bot, you can simply type either /health or /check <username>. If you are in a group, you will first need to @mention your bot, followed by /health or /check <username>.
