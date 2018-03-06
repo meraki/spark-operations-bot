@@ -1,5 +1,5 @@
-# CICO
-Cisco Infrastructure Chat Ops
+# Spark Operations Bot
+Spark Operations Bot, also known as Cisco Infrastructure Chat Ops (CICO).
 
 This bot leverages the Spark Bot framework found [here](https://github.com/imapex/ciscosparkbot). It has two primary functions:
 
