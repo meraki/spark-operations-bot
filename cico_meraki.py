@@ -501,6 +501,7 @@ def get_meraki_clients(incoming_msg, rettype):
              Dictionary (if rettype = json). Raw data that is expected to be consumed in cico_combined
     '''
 
+    devcount = 0
     # Get client username
     cmdlist = incoming_msg.text.split(" ")
     client_id = cmdlist[len(cmdlist)-1]
@@ -513,6 +514,7 @@ def get_meraki_clients(incoming_msg, rettype):
     netlist = do_multi_get(urlnet, netjson, "id", "", -1, "networkId", "devices")
     smlist = do_multi_get(smnet, [], "id", "", 6, "", "")
     newsmlist = do_sort_smclients(smlist)
+    smnetid = smnet[0].split("/")[6]
     # Parse list of devices to extract/create URLs needed to get list of clients
     urldev = collect_url_list(netlist, "https://dashboard.meraki.com/api/v0/devices/$1/clients?timespan=" + meraki_client_to, "devices", "serial", "", "")
     # Get a list of all clients associated with the devices associated to the networks associated to the organization
@@ -520,50 +522,69 @@ def get_meraki_clients(incoming_msg, rettype):
 
     # If returning json, don't do any processing, just return raw data
     if rettype == "json":
-        return {"client": netlist, "sm": newsmlist}
+        return {"client": netlist, "sm": newsmlist, "smnetid": smnetid}
     else:
         retmsg = "<h3>Associated Clients:</h3>"
-        # netlist is a list of all Meraki Networks in the supplied or derived organization. Iterate these, sorted by name.
-        for net in sorted(netlist):
-            # netlist[net]["devices"] represents a list of devices in the individual network that is being iterated.
-            for dev in netlist[net]["devices"]:
-                # netlist[net]["devices"][dev]["clients"] represents a list of clients attached to a specific device that
-                # is being iterated.
-                for cli in netlist[net]["devices"][dev]["clients"]:
-                    # The client should not be a string. If it is for some reason, do not process it.
-                    if not isinstance(cli, str):
-                        # If the description of the client matches the username specified in Spark, and if this specific
-                        # client has a switchport mapping, then continue (duplicate clients from MX security appliances
-                        # will also be in this list, the switchport check is used to exclude those)
-                        if cli["description"] == client_id and "switchport" in cli:
-                            devbase = netlist[net]["devices"][dev]["info"]
-                            # These functions generate the cross-launch links (if available) for the given
-                            # client/device/port
-                            showdev = meraki_create_dashboard_link("devices", devbase["mac"], devbase["name"], "?timespan=" + meraki_client_to, 0)
-                            showport = meraki_create_dashboard_link("devices", devbase["mac"], str(cli["switchport"]), "/ports/" + str(cli["switchport"]) + "?timespan=" + meraki_client_to, 1)
-                            showcli = meraki_dashboard_client_mod(showdev, cli["id"], cli["dhcpHostname"])
-                            retmsg += "<i>Computer Name:</i> " + showcli + "<br>"
+        if netlist:
+            # netlist is a list of all Meraki Networks in the supplied or derived organization. Iterate these, sorted by name.
+            for net in sorted(netlist):
+                # netlist[net]["devices"] represents a list of devices in the individual network that is being iterated.
+                for dev in netlist[net]["devices"]:
+                    # netlist[net]["devices"][dev]["clients"] represents a list of clients attached to a specific device that
+                    # is being iterated.
+                    for cli in netlist[net]["devices"][dev]["clients"]:
+                        # The client should not be a string. If it is for some reason, do not process it.
+                        if not isinstance(cli, str):
+                            # If the description of the client matches the username specified in Spark, and if this specific
+                            # client has a switchport mapping, then continue (duplicate clients from MX security appliances
+                            # will also be in this list, the switchport check is used to exclude those)
+                            if cli["description"] == client_id and "switchport" in cli:
+                                devbase = netlist[net]["devices"][dev]["info"]
+                                # These functions generate the cross-launch links (if available) for the given
+                                # client/device/port
+                                showdev = meraki_create_dashboard_link("devices", devbase["mac"], devbase["name"], "?timespan=" + meraki_client_to, 0)
+                                showport = meraki_create_dashboard_link("devices", devbase["mac"], str(cli["switchport"]), "/ports/" + str(cli["switchport"]) + "?timespan=" + meraki_client_to, 1)
+                                showcli = meraki_dashboard_client_mod(showdev, cli["id"], cli["dhcpHostname"])
+                                if devcount > 0:
+                                    retmsg += "<br>"
+                                devcount += 1
+                                retmsg += "<i>Computer Name:</i> " + showcli + "<br>"
 
-                            # Iterate the Systems Manager list to see if the client exists there. Iterate through networks.
-                            if net in newsmlist:
-                                # If this network has any devices, then we will attempt to cross reference the client data
-                                if "devices" in newsmlist[net]:
-                                    # Our cross-reference point is mac address, as it will exist in both the dashboard
-                                    # clients list as well as the systems manager clients list.
-                                    if cli["mac"] in newsmlist[net]["devices"]:
-                                        # If we are able to cross-reference, we will add some system-specific and
-                                        # OS-specific details from SM
-                                        smbase = newsmlist[net]["devices"][cli["mac"]]
-                                        retmsg += "<i>Model:</i> " + smbase["systemModel"] + "<br>"
-                                        retmsg += "<i>OS:</i> " + smbase["osName"] + "<br>"
+                                # Iterate the Systems Manager list to see if the client exists there. Iterate through networks.
+                                if net in newsmlist:
+                                    # If this network has any devices, then we will attempt to cross reference the client data
+                                    if "devices" in newsmlist[net]:
+                                        # Our cross-reference point is mac address, as it will exist in both the dashboard
+                                        # clients list as well as the systems manager clients list.
+                                        if cli["mac"] in newsmlist[net]["devices"]:
+                                            # If we are able to cross-reference, we will add some system-specific and
+                                            # OS-specific details from SM
+                                            smbase = newsmlist[net]["devices"][cli["mac"]]
+                                            retmsg += "<i>Model:</i> " + smbase["systemModel"] + "<br>"
+                                            retmsg += "<i>OS:</i> " + smbase["osName"] + "<br>"
 
-                            # Once we've checked for Systems Manager cross references, we will display the rest of the
-                            # client details
-                            retmsg += "<i>IP:</i> " + cli["ip"] + "<br>"
-                            retmsg += "<i>MAC:</i> " + cli["mac"] + "<br>"
-                            retmsg += "<i>VLAN:</i> " + str(cli["vlan"]) + "<br>"
-                            # This creates the description of the switch / port the client is connected to
-                            retmsg += "<i>Connected To:</i> " + showdev + " (" + devbase["model"] + "), Port " + showport + "<br>"
+                                # Once we've checked for Systems Manager cross references, we will display the rest of the
+                                # client details
+                                retmsg += "<i>IP:</i> " + cli["ip"] + "<br>"
+                                retmsg += "<i>MAC:</i> " + cli["mac"] + "<br>"
+                                retmsg += "<i>VLAN:</i> " + str(cli["vlan"]) + "<br>"
+                                # This creates the description of the switch / port the client is connected to
+                                retmsg += "<i>Connected To:</i> " + showdev + " (" + devbase["model"] + "), Port " + showport + "<br>"
+        elif newsmlist:
+            for cli in newsmlist[smnetid]["devices"]:
+                smbase = newsmlist[smnetid]["devices"][cli]
+                if client_id.lower() in smbase["name"].lower() or client_id.lower() in [x.lower() for x in smbase["tags"]]:
+                    if devcount > 0:
+                        retmsg += "<br>"
+                    devcount += 1
+                    retmsg += "<i>Client Name:</i> " + smbase["name"] + "<br>"
+                    retmsg += "<i>Model:</i> " + smbase["systemModel"] + "<br>"
+                    retmsg += "<i>OS:</i> " + smbase["osName"] + "<br>"
+                    retmsg += "<i>MAC:</i> " + smbase["wifiMac"] + "<br>"
+                    smssid = smbase["ssid"]
+                    if smssid is None:
+                        smssid = "N/A"
+                    retmsg += "<i>Wireless SSID:</i> " + smssid + "<br>"
 
         return retmsg
 
