@@ -25,6 +25,14 @@ if not meraki_org:
 
 if not meraki_http_un or not meraki_http_pw or not meraki_api_token or not meraki_org:
     print("meraki_dashboard_link_parser.py - Missing Environment Variable.")
+    if not meraki_http_un:
+        print("MERAKI_HTTP_USERNAME")
+    if not meraki_http_pw:
+        print("MERAKI_HTTP_PASSWORD")
+    if not meraki_api_token:
+        print("MERAKI_API_TOKEN")
+    if not meraki_org:
+        print("MERAKI_ORG")
 
 header = {"X-Cisco-Meraki-API-Key": meraki_api_token}
 

@@ -15,6 +15,8 @@ spark_api_token = os.getenv("SPARK_API_TOKEN")
 spark_over_dash = os.getenv("SPARK_OVERRIDE_DASHBOARD")
 if not spark_api_token:
     print("cico_spark_call.py - Missing Environment Variable.")
+    if not spark_api_token:
+        print("SPARK_API_TOKEN")
     header = {}
 else:
     header = {
