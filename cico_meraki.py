@@ -40,8 +40,6 @@ def get_meraki_orgs():
     '''
     url = "https://dashboard.meraki.com/api/v0/organizations"
     netlist = requests.get(url, headers=header)
-    print(url)
-    print(header)
     orgjson = json.loads(netlist.content.decode("utf-8"))
     return orgjson
 
