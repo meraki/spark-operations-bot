@@ -15,6 +15,12 @@ s3_secret = os.getenv("S3_SECRET_ACCESS_KEY")
 
 if not s3_bucket or not s3_key or not s3_secret:
     print("umbrella_log_collector.py - Missing Environment Variable.")
+    if not s3_bucket:
+        print("S3_BUCKET")
+    if not s3_key:
+        print("S3_ACCESS_KEY_ID")
+    if not s3_secret:
+        print("S3_SECRET_ACCESS_KEY")
 
 # ========================================================
 # Initialize Program - Function Definitions
