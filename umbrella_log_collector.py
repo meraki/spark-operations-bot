@@ -78,25 +78,28 @@ def cleanup_files(cl, dist, local='/tmp'):
             s3flist.append(x["Key"])
 
         # Get list of all filesystem objects
-        flist = os.listdir(local + os.sep + dist)
-        # Iterate list of fs objects
-        for fdir in flist:
-            # Everything in the base path should be a directory. Only continue if this is a directory object
-            if os.path.isdir(local + os.sep + dist + fdir):
-                # Check to see how many files are in this directory
-                flist2 = os.listdir(local + os.sep + dist + fdir)
-                # If 0 files, delete directory
-                if len(flist2) == 0:
-                    print("removing empty directory " + local + os.sep + dist + fdir)
-                    os.rmdir(local + os.sep + dist + fdir)
+        try:
+            flist = os.listdir(local + os.sep + dist)
+            # Iterate list of fs objects
+            for fdir in flist:
+                # Everything in the base path should be a directory. Only continue if this is a directory object
+                if os.path.isdir(local + os.sep + dist + fdir):
+                    # Check to see how many files are in this directory
+                    flist2 = os.listdir(local + os.sep + dist + fdir)
+                    # If 0 files, delete directory
+                    if len(flist2) == 0:
+                        print("removing empty directory " + local + os.sep + dist + fdir)
+                        os.rmdir(local + os.sep + dist + fdir)
 
-                # Iterate list of files
-                for fn in flist2:
-                    fpath = dist + fdir + os.sep + fn
-                    # If this file is not in the Amazon S3 object list, then we want to delete
-                    if fpath not in s3flist:
-                        print("delete " + local + os.sep + fpath)
-                        os.remove(local + os.sep + fpath)
+                    # Iterate list of files
+                    for fn in flist2:
+                        fpath = dist + fdir + os.sep + fn
+                        # If this file is not in the Amazon S3 object list, then we want to delete
+                        if fpath not in s3flist:
+                            print("delete " + local + os.sep + fpath)
+                            os.remove(local + os.sep + fpath)
+        except:
+            print("Error: unable to clean up...")
 
 
 def get_logs():
@@ -128,3 +131,6 @@ def get_logs():
     cleanup_files(cl, 'dnslogs/', '/tmp')
     # print("Sleeping for 5 minutes...")
     # time.sleep(60*5)   # Delay for 5 minute (60 seconds * 5 minutes).
+
+if __name__ == '__main__':
+    get_logs()
