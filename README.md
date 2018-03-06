@@ -59,8 +59,8 @@ Create a virtualenv and install the module
 ```
 virtualenv venv
 source venv/bin/activate
-pip install ciscosparkbot
-git clone https://github.com/joshand/CICO.git
+pip install -r requirements.txt
+git clone https://github.com/meraki/spark-operations-bot.git
 ```
 
 ## ngrok - Skip this step if you already have an Internet reachable web-server<a name="ngrok"/>
