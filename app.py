@@ -38,6 +38,14 @@ bot_app_name = os.getenv("SPARK_BOT_APP_NAME")
 # If any of the bot environment variables are missing, terminate the application
 if not bot_email or not spark_token or not bot_url or not bot_app_name:
     print("app.py - Missing Environment Variable.")
+    if not bot_email:
+        print("SPARK_BOT_EMAIL")
+    if not spark_token:
+        print("SPARK_BOT_TOKEN")
+    if not bot_url:
+        print("SPARK_BOT_URL")
+    if not bot_app_name:
+        print("SPARK_BOT_APP_NAME")
     sys.exit()
 
 
