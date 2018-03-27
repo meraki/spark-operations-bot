@@ -42,7 +42,6 @@ def get_meraki_orgs():
     netlist = requests.get(url, headers=header)
     netstr = netlist.content.decode("utf-8")
     if netstr.strip() != "":
-        print("netstr=", netstr)
         orgjson = json.loads(netstr)
     else:
         orgjson = {}
