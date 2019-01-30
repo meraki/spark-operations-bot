@@ -11,6 +11,7 @@ import cico_spark_call
 import cico_combined
 import cico_common
 import cico_umbrella
+import cico_a4e
 import sys
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -59,16 +60,16 @@ def job_function():
 
 
 # Monkey patch send_help in SparkBot to allow removing built-in commands
-def my_remove_command(self, command):
-    """
-    Remove a command from the bot
-    :param command: The command string, example "/status"
-    :return:
-    """
-    del self.commands[command]
-
-
-SparkBot.remove_command = my_remove_command
+# def my_remove_command(self, command):
+#     """
+#     Remove a command from the bot
+#     :param command: The command string, example "/status"
+#     :return:
+#     """
+#     del self.commands[command]
+#
+#
+# SparkBot.remove_command = my_remove_command
 # Monkey patch done.
 
 

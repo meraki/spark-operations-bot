@@ -17,6 +17,8 @@ spark_api_token = os.getenv("SPARK_API_TOKEN")
 s3_bucket = os.getenv("S3_BUCKET")
 s3_key = os.getenv("S3_ACCESS_KEY_ID")
 s3_secret = os.getenv("S3_SECRET_ACCESS_KEY")
+a4e_client_id = os.getenv("A4E_CLIENT_ID")
+a4e_client_secret = os.getenv("A4E_CLIENT_SECRET")
 
 
 # ========================================================
@@ -72,6 +74,18 @@ def umbrella_support():
     :return: true/false based on whether or not Umbrella support is available
     '''
     if s3_bucket and s3_key and s3_secret:
+        return True
+    else:
+        return False
+
+def a4e_support():
+    '''
+    This function is used to check whether the Amp for Endpoints environment variables have been set. It will return
+    true if they have and false if they have not
+
+    :return: true/false based on whether or not A4E support is available
+    '''
+    if a4e_client_id and a4e_client_secret:
         return True
     else:
         return False
