@@ -51,7 +51,15 @@
     "S3_SECRET_ACCESS_KEY": {
       "description": "(Required for Umbrella Support) Amazon S3 Secret Access Key for Umbrella log import.",
       "required": false
+    },
+    "A4E_CLIENT_ID": {
+      "description": "(Required for AMP for Endpoints Support) AMP for Endpoints 3rd Party API Client ID.",
+      "required": false
+    },
+    "A4E_CLIENT_SECRET": {
+      "description": "(Required for AMP for Endpoints Support) AMP for Endpoints API Key.",
+      "required": false
     }
   },
-  "keywords": ["meraki", "spark", "cisco", "ciscospark", "umbrella", "opendns", "bot", "botkit", "python"]
+  "keywords": ["meraki", "spark", "cisco", "ciscospark", "umbrella", "opendns", "bot", "botkit", "python", "a4e", "amp4endpoints", "amp"]
 }
