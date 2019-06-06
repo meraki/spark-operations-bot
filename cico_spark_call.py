@@ -246,6 +246,11 @@ def get_spark_call_health(incoming_msg, rettype):
     # Get report of all devices in organization
     sparkerror = 0
     spark_data = spark_api_get_dev_status_report()
+    if isinstance(spark_data, str):
+        if spark_data.find("Error") >= 0:
+            print("Spark reported an error. Unable to show Spark Call Data.")
+            sparkerror = 1
+    # This is probably non-functional...
     if len(spark_data) == 1:
         if spark_data[0].find("Error") >= 0:
             print("Spark reported an error. Unable to show Spark Call Data.")

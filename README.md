@@ -28,6 +28,8 @@ This bot leverages the Spark Bot framework found [here](https://github.com/imape
   - [Create S3 API User](#umbrella-s3-api)
   - [Set S3 Lifecycle](#umbrella-s3-retention)
   - [Environment](#umbrella-env-setup)
+- [AMP for Endpoints Integration](#a4e)
+  - [Create API Credential](#a4e-token)
 - [Bot Usage](#usage)
   - [Execute Locally](#local-run)
   - [Docker](#docker-run)
@@ -326,6 +328,29 @@ By default, when performing a "check &lt;username&gt;", the bot will match clien
 
 ![umbrella_roaming_rename](images/umbrella_roaming_rename.png)
 
+# AMP for Endpoints Integration<a name="a4e"/>
+
+## Create an A4E API Credential<a name="a4e-token"/>
+
+Go to https://console.amp.cisco.com, and log in with a user that has Full Admin rights to your AMP for Endpoints organization.
+
+In the top menu, click Accounts dropdown menu, then click the "API Credentials" menu option.
+
+![a4e_new_token](images/a4e_new_token.png)
+
+Click the button for "New API Credential".
+
+![a4e_create_token](images/a4e_create_token.png)
+
+Give your API Credential a recognizable name, leave the Scope as "Read-only", then click the "Create" button.
+
+![a4e_token_config](images/a4e_token_config.png)
+
+Save the Client ID and API Key for the environment variables below.
+
+![a4e_show_token](images/a4e_show_token.png)
+
+
 # Bot Usage<a name="usage"/>
 
 There are several ways to run the bot. Use one of the methods below to start up the bot. Once it's running, you can start interacting with it!
@@ -352,6 +377,9 @@ export SPARK_API_TOKEN=<Spark Call Admin API token>
 export S3_BUCKET=<Amazon S3 bucket name; used for Umbrella log import>
 export S3_ACCESS_KEY_ID=<Amazon S3 access key ID; used for Umbrella log import>
 export S3_SECRET_ACCESS_KEY=<Amazon S3 secret access key; used for Umbrella log import>
+# Enable AMP for Endpoints Integration
+export A4E_CLIENT_ID=<AMP for Endpoints 3rd Party API Client ID>
+export A4E_CLIENT_SECRET=<AMP for Endpoints API Key>
 ```
 
 Now launch your bot!!

@@ -6,6 +6,7 @@ import os
 import cico_meraki
 import cico_spark_call
 import cico_umbrella
+import cico_a4e
 import cico_common
 
 # ========================================================
@@ -47,6 +48,10 @@ def get_health(incoming_msg):
         if retval != "":
             retval += "<br><br>"
         retval += cico_umbrella.get_umbrella_health(incoming_msg, "html")
+    if cico_common.a4e_support():
+        if retval != "":
+            retval += ""
+        retval += cico_a4e.get_a4e_health(incoming_msg, "html")
 
     return retval
 
@@ -70,6 +75,7 @@ def get_clients(incoming_msg):
     sclients = {}
     mclients = {}
     uclients = {}
+    aclients = {}
     netlist = []
     newsmlist = []
     smnetid = ""
@@ -95,6 +101,10 @@ def get_clients(incoming_msg):
     if cico_common.umbrella_support():
         print("Umbrella Support Enabled")
         uclients = cico_umbrella.get_umbrella_clients(incoming_msg, "json")
+    # If Amp for Endpoints environment variables have been enabled, retrieve A4E client information
+    if cico_common.a4e_support():
+        print("Amp for Endpoints Support Enabled")
+        aclients = cico_a4e.get_a4e_clients(incoming_msg, "json")
 
     # Initialize individual product return strings
     retm = "<h3>Associated Clients:</h3>"
@@ -147,6 +157,29 @@ def get_clients(incoming_msg):
                             # This creates the description of the switch / port the client is connected to
                             # --duplicate-- devbase = netlist[net]["devices"][dev]["info"]
                             retm += "<i>Connected To:</i> " + showdev + " (" + devbase["model"] + "), Port " + showport + "<br>"
+
+                            # Now, check to see if there is cooresponding Amp for Endpoints data...
+                            if any(cli["dhcpHostname"] in s for s in aclients["clients"]):
+                                retm += "<h3>AMP for Endpoints Stats:</h3><ul>"
+                                for acli in aclients["clients"]:
+                                    if "." in acli:
+                                        ahostname = acli.split(".")[0]
+                                    else:
+                                        ahostname = acli
+
+                                    if ahostname == cli["dhcpHostname"]:
+                                        retm += "<li><b>" + str(aclients["clients"][acli]["threat_detected_count"]) + " threat(s) detected. (" + str(aclients["clients"][acli]["threat_detected_excluded_count"]) + " in excluded locations.)</b></li>"
+                                        retm += "<li><b>" + str(aclients["clients"][acli]["threat_quarantined_count"]) + " threat(s) quarantined.</b></li>"
+                                        if aclients["clients"][acli]["threat_quarantine_failed_count"] > 0:
+                                            erricon = chr(0x2757) + chr(0xFE0F)
+                                        else:
+                                            erricon = ""
+                                        retm += "<li><b>" + str(aclients["clients"][acli]["threat_quarantine_failed_count"]) + " threat(s) quarantine failed." + erricon + "</b></li>"
+                                    retm += "</ul>Processed " + str(aclients["aggregate"]["processed_events"]) + " of " + str(aclients["aggregate"]["total_events"]) + " threat event(s)."
+                            else:
+                                retmsg += "<h3>AMP for Endpoints Stats:</h3><ul>"
+                                retmsg += "<li>No stats available for this user.</li></ul>"
+
                         # Here, we will also check to see if there is a phone associated to this user. If so, we will
                         # follow a similar process to determine where the phone is connected and get client details for it.
                         # If there are phones available, and if the mac address of the client being reviewed currently is

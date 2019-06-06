@@ -11,6 +11,7 @@ import cico_spark_call
 import cico_combined
 import cico_common
 import cico_umbrella
+import cico_a4e
 import sys
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -56,20 +57,6 @@ if not bot_email or not spark_token or not bot_url or not bot_app_name:
 # This function is called by the scheduler to download logs from Amazon S3 (for Umbrella)
 def job_function():
     umbrella_log_collector.get_logs()
-
-
-# Monkey patch send_help in SparkBot to allow removing built-in commands
-def my_remove_command(self, command):
-    """
-    Remove a command from the bot
-    :param command: The command string, example "/status"
-    :return:
-    """
-    del self.commands[command]
-
-
-SparkBot.remove_command = my_remove_command
-# Monkey patch done.
 
 
 # Check to see if a dashboard username and password has been provided. If so, scrape the dashboard to build
@@ -122,6 +109,10 @@ if cico_common.spark_call_support():
 if cico_common.umbrella_support():
     bot.add_command('umbrella-health', 'Get health of Umbrella envrionment.', cico_umbrella.get_umbrella_health_html)
     bot.add_command('umbrella-check', 'Check Umbrella user status.', cico_umbrella.get_umbrella_clients_html)
+# If Amp for Endpoints environment variables have been enabled, add A4E-specifc commands.
+if cico_common.a4e_support():
+    bot.add_command('a4e-health', 'Get health of AMP for Endpoints envrionment.', cico_a4e.get_a4e_health_html)
+    bot.add_command('a4e-check', 'Check AMP for Endpoints user status.', cico_a4e.get_a4e_clients_html)
 # Add generic commands.
 bot.add_command('health', 'Get health of entire environment.', cico_combined.get_health)
 bot.add_command('check', 'Get user status.', cico_combined.get_clients)
