@@ -366,6 +366,7 @@ export SPARK_BOT_URL=https://mypublicsite.io  *(your public facing webserver, or
 export SPARK_BOT_TOKEN=<your bot token>
 export SPARK_BOT_EMAIL=<your bot email>
 export SPARK_BOT_APP_NAME=<your bot name>
+export SPARK_BOT_HELP_MSG=<Optional, used to customize Bot Help Banner>
 # Enable Meraki Integration
 export MERAKI_API_TOKEN=<Meraki Dashboard API token>
 export MERAKI_ORG=<Meraki Dashboard Organization ID>
