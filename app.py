@@ -18,6 +18,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import umbrella_log_collector
 import meraki_dashboard_link_parser
 
+
 # ========================================================
 # Load required parameters from environment variables
 # ========================================================
@@ -35,6 +36,7 @@ bot_email = os.getenv("SPARK_BOT_EMAIL")
 spark_token = os.getenv("SPARK_BOT_TOKEN")
 bot_url = os.getenv("SPARK_BOT_URL")
 bot_app_name = os.getenv("SPARK_BOT_APP_NAME")
+bot_help = os.getenv("SPARK_BOT_HELP_MSG")
 
 # If any of the bot environment variables are missing, terminate the application
 if not bot_email or not spark_token or not bot_url or not bot_app_name:
@@ -48,6 +50,29 @@ if not bot_email or not spark_token or not bot_url or not bot_app_name:
     if not bot_app_name:
         print("SPARK_BOT_APP_NAME")
     sys.exit()
+
+
+# ========================================================
+# Monkey Patch Spark Bot send_help method to customize header
+# ========================================================
+def new_send_help(self, post_data):
+    """
+    Construct a help message for users.
+    :param post_data:
+    :return:
+    """
+    if bot_help:
+        message = bot_help + "\n"
+    else:
+        message = "Hello!  "
+        message += "I understand the following commands:  \n"
+    for c in self.commands.items():
+        if c[1]["help"][0] != "*":
+            message += "* **%s**: %s \n" % (c[0], c[1]["help"])
+    return message
+
+
+SparkBot.send_help = new_send_help
 
 
 # ========================================================

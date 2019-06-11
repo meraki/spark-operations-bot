@@ -15,7 +15,7 @@ import cico_common
 
 meraki_client_to = os.getenv("MERAKI_CLIENT_TIMESPAN")
 if not meraki_client_to:
-    meraki_client_to = 86400
+    meraki_client_to = "86400"
 
 
 # ========================================================
