@@ -20,6 +20,10 @@
       "description": "The bot's name from Cisco Spark.",
       "required": true
     },
+    "SPARK_BOT_HELP_MSG": {
+      "description": "(Optional) Used to customize Bot Help Banner",
+      "required": false
+    },
     "MERAKI_API_TOKEN": {
       "description": "(Required for Meraki Support) The API token from the Meraki Dashboard.",
       "required": false
