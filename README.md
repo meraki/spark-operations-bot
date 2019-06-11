@@ -354,7 +354,7 @@ Save the Client ID and API Key for the environment variables below.
 # Bot Usage<a name="usage"/>
 
 There are several ways to run the bot. Use one of the methods below to start up the bot. Once it's running, you can start interacting with it!
-If you are in a 1:1 space with your bot, you can simply type either /health or /check <username>. If you are in a group, you will first need to @mention your bot, followed by /health or /check <username>.
+If you are in a 1:1 space with your bot, you can simply type either health or check <username>. If you are in a group, you will first need to @mention your bot, followed by health or check <username>.
 
 ## Execute Locally<a name="local-run">
 
