@@ -104,6 +104,56 @@ def get_meraki_networks():
     return netjson
 
 
+def get_org_devices(netinfo):
+    '''
+    Get a list of all devices in a given organization
+
+    :return: a list with all devices that are part of the specified/derived organization
+    '''
+    url = "https://dashboard.meraki.com/api/v0/organizations/" + meraki_org + "/devices"
+    netlist = requests.get(url, headers=header)
+    if netlist.status_code == 200:
+        netjson = json.loads(netlist.content.decode("utf-8"))
+    else:
+        netjson = {}
+        print("Error retrieving Meraki devices:", netlist.status_code)
+    return netjson
+
+
+def get_org_device_statuses(netinfo):
+    '''
+    Get a list of all devices/statuses in a given organization
+
+    :return: a list with all devices that are part of the specified/derived organization
+    '''
+    dev_list = get_org_devices(netinfo)
+    out_netjson = {}
+    url = "https://dashboard.meraki.com/api/v0/organizations/" + meraki_org + "/deviceStatuses"
+    netlist = requests.get(url, headers=header)
+    if netlist.status_code == 200:
+        netjson = json.loads(netlist.content.decode("utf-8"))
+        for n in netjson:
+            dev_info = {}
+            for d in dev_list:
+                if d["serial"] == n["serial"]:
+                    dev_info = d
+                    break
+            n_info = n
+            n_info["info"] = dev_info
+            if n["networkId"] in out_netjson:
+                out_netjson[n["networkId"]]["devices"][n["serial"]] = n_info
+            else:
+                out_netjson[n["networkId"]] = {"devices": {n["serial"]: n_info}}
+
+        for n in out_netjson:
+            for m in netinfo:
+                if m["id"] == n:
+                    out_netjson[n]["info"] = m
+    else:
+        print("Error retrieving Meraki devices:", netlist.status_code)
+    return out_netjson
+
+
 def meraki_create_dashboard_link(linktype, linkname, displayval, urlappend, linknameid):
     '''
     This function is used to create the dashboard cross-launch links for clients, networks and devices. For devices,
@@ -416,16 +466,22 @@ def do_split_networks(in_netlist):
 
     # Iterate dictionary of networks
     for net in in_netlist:
-        base_name = in_netlist[net]["info"]["info"]["name"]
+        base_name = in_netlist[net]["info"]["name"]
         # Iterate dictionary of devices in the currently iterated network
-        for dev in in_netlist[net]["info"]["devices"]:
-            # Look up the Model number to determine what the dashboard name will be
-            thisdevtype = decode_model(dev["model"])
-            # Also, retain uplink data for output dict
-            thisupl = {"uplinks": in_netlist[net]["devices"][dev["serial"]]["uplinks"]}
-            # This is the format of the output network. 'Network Name - device type"
-            newname = base_name + " - " + thisdevtype
-            newdev = {**dev, **thisupl}
+        for devsn in in_netlist[net]["devices"]:
+            dev = in_netlist[net]["devices"][devsn]
+            thisstat = {"status": in_netlist[net]["devices"][dev["serial"]]["status"]}
+            # Don't try to un-combine already non-combined networks...
+            if in_netlist[net]["info"]["type"] != "combined":
+                newname = base_name
+                newdev = {**dev, **thisstat}
+            else:
+                # Look up the Model number to determine what the dashboard name will be
+                thisdevtype = decode_model(dev["info"]["model"])
+                # Also, retain uplink data for output dict
+                # This is the format of the output network. 'Network Name - device type"
+                newname = base_name + " - " + thisdevtype
+                newdev = {**dev, **thisstat}
 
             # Append or create this entry in the output dict
             if newname in devdict:
@@ -447,15 +503,11 @@ def get_meraki_health(incoming_msg, rettype):
 
     # Get a list of all networks associated with the specified organization
     netjson = get_meraki_networks()
-    # Parse list of networks to extract/create URLs needed to get list of devices
-    urlnet = collect_url_list(netjson, "https://dashboard.meraki.com/api/v0/networks/$1/devices", "id", "", "", "")
-    # Get a list of all devices associated with the networks associated to the organization
-    netlist = do_multi_get(urlnet, netjson, "id", "", -1, "networkId", "devices")
-    # Get uplink status of devices
-    urlnetup = collect_url_list(netlist, "https://dashboard.meraki.com/api/v0/networks/$1/devices/$2/uplink", "info", "id", "devices", "serial")
-    netlistup = do_multi_get(urlnetup, netlist, "devices", "serial", 8, "", "uplinks")
+
+    # Get a list of all devices in the organization
+    statlist = get_org_device_statuses(netjson)
     # Split network lists up by device type
-    newnetlist = do_split_networks(netlistup)
+    newnetlist = do_split_networks(statlist)
 
     totaldev = 0
     offdev = 0
@@ -470,16 +522,11 @@ def get_meraki_health(incoming_msg, rettype):
     for net in sorted(newnetlist):
         # Iterate through all devices in the currently iterated network
         for dev in newnetlist[net]:
-            # Iterate through uplinks of currently iterated device in the currently iterated network
-            for upl in dev["uplinks"]:
-                # We will base Up/Down based on WAN 1. See if the currently iterated uplink is that interface.
-                if upl["interface"] == "WAN 1":
-                    # If WAN 1 is Active, the link is up. If it's not active, we will increment the down counter, and
-                    # display the error symbol.
-                    if upl["status"] != "Active":
-                        offdev += 1
-                        totaloffdev += 1
-                        devicon = chr(0x2757) + chr(0xFE0F)
+            # Check status of the device
+            if dev["status"] != "online":
+                offdev += 1
+                totaloffdev += 1
+                devicon = chr(0x2757) + chr(0xFE0F)
 
         # Increment the total number of devices
         totaldev += len(newnetlist[net])
