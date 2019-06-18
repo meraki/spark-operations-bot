@@ -159,26 +159,27 @@ def get_clients(incoming_msg):
                             retm += "<i>Connected To:</i> " + showdev + " (" + devbase["model"] + "), Port " + showport + "<br>"
 
                             # Now, check to see if there is cooresponding Amp for Endpoints data...
-                            if any(cli["dhcpHostname"] in s for s in aclients["clients"]):
-                                retm += "<h3>AMP for Endpoints Stats:</h3><ul>"
-                                for acli in aclients["clients"]:
-                                    if "." in acli:
-                                        ahostname = acli.split(".")[0]
-                                    else:
-                                        ahostname = acli
-
-                                    if ahostname == cli["dhcpHostname"]:
-                                        retm += "<li><b>" + str(aclients["clients"][acli]["threat_detected_count"]) + " threat(s) detected. (" + str(aclients["clients"][acli]["threat_detected_excluded_count"]) + " in excluded locations.)</b></li>"
-                                        retm += "<li><b>" + str(aclients["clients"][acli]["threat_quarantined_count"]) + " threat(s) quarantined.</b></li>"
-                                        if aclients["clients"][acli]["threat_quarantine_failed_count"] > 0:
-                                            erricon = chr(0x2757) + chr(0xFE0F)
+                            if cico_common.a4e_support():
+                                if any(cli["dhcpHostname"] in s for s in aclients["clients"]):
+                                    retm += "<h3>AMP for Endpoints Stats:</h3><ul>"
+                                    for acli in aclients["clients"]:
+                                        if "." in acli:
+                                            ahostname = acli.split(".")[0]
                                         else:
-                                            erricon = ""
-                                        retm += "<li><b>" + str(aclients["clients"][acli]["threat_quarantine_failed_count"]) + " threat(s) quarantine failed." + erricon + "</b></li>"
-                                    retm += "</ul>Processed " + str(aclients["aggregate"]["processed_events"]) + " of " + str(aclients["aggregate"]["total_events"]) + " threat event(s)."
-                            else:
-                                retmsg += "<h3>AMP for Endpoints Stats:</h3><ul>"
-                                retmsg += "<li>No stats available for this user.</li></ul>"
+                                            ahostname = acli
+
+                                        if ahostname == cli["dhcpHostname"]:
+                                            retm += "<li><b>" + str(aclients["clients"][acli]["threat_detected_count"]) + " threat(s) detected. (" + str(aclients["clients"][acli]["threat_detected_excluded_count"]) + " in excluded locations.)</b></li>"
+                                            retm += "<li><b>" + str(aclients["clients"][acli]["threat_quarantined_count"]) + " threat(s) quarantined.</b></li>"
+                                            if aclients["clients"][acli]["threat_quarantine_failed_count"] > 0:
+                                                erricon = chr(0x2757) + chr(0xFE0F)
+                                            else:
+                                                erricon = ""
+                                            retm += "<li><b>" + str(aclients["clients"][acli]["threat_quarantine_failed_count"]) + " threat(s) quarantine failed." + erricon + "</b></li>"
+                                        retm += "</ul>Processed " + str(aclients["aggregate"]["processed_events"]) + " of " + str(aclients["aggregate"]["total_events"]) + " threat event(s)."
+                                else:
+                                    retmsg += "<h3>AMP for Endpoints Stats:</h3><ul>"
+                                    retmsg += "<li>No stats available for this user.</li></ul>"
 
                         # Here, we will also check to see if there is a phone associated to this user. If so, we will
                         # follow a similar process to determine where the phone is connected and get client details for it.
